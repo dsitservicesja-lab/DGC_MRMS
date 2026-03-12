@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>New Meeting Request</h1>
+<form method="post" class="card grid">
+  <label>Request Date <input type="date" name="request_date" required></label>
+
+  <label>Requested By
+    <select name="requested_by" required>
+      <option value="">Select...</option>
+      {% for s in staff %}
+        <option value="{{ s.display }}">{{ s.display }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Start Date <input type="date" name="start_date" required></label>
+  <label>End Date <input type="date" name="end_date" required></label>
+
+  <label>Start Time <input type="time" name="start_time" required></label>
+  <label>End Time <input type="time" name="end_time" required></label>
+
+  <label>Location
+    <select name="location" required>
+      <option value="">Select...</option>
+      {% for loc in locations %}
+        <option value="{{ loc }}">{{ loc }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Meeting Type
+    <select name="meeting_type">
+      <option value="">Select...</option>
+      {% for mt in meeting_types %}
+        <option value="{{ mt }}">{{ mt }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Confidential?
+    <select name="confidential">
+      {% for c in confidential_opts %}
+        <option value="{{ c }}">{{ c }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Purpose <input name="purpose" placeholder="Purpose / agenda"></label>
+
+  <label>Expected Attendee (Personnel)
+    <select name="expected_attendee">
+      <option value="">Select...</option>
+      {% for s in staff %}
+        <option value="{{ s.display }}">{{ s.display }}</option>
+      {% endfor %}
+      <option value="Other">Other</option>
+    </select>
+  </label>
+
+  <label>Attendees Details (if Other/Multiple)
+    <textarea name="attendees_details" rows="3" placeholder="List attendees if needed"></textarea>
+  </label>
+
+  <button class="btn" type="submit">Submit (Status = Pending)</button>
+</form>
+<p class="note">System enforces a 15-minute gap between meetings at the same location.</p>
+{% endblock %}

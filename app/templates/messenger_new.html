@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>New Messenger Request</h1>
+<form method="post" class="card grid">
+  <label>Request Date <input type="date" name="request_date" required></label>
+
+  <label>Requested By
+    <select name="requested_by" required>
+      <option value="">Select...</option>
+      {% for s in staff %}
+        <option value="{{ s.display }}">{{ s.display }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Pickup Location <input name="pickup_location" placeholder="e.g., GC12 - HRM&A Office"></label>
+
+  <label>Delivery Type
+    <select name="delivery_type">
+      <option value="">Select...</option>
+      {% for d in delivery_types %}
+        <option value="{{ d }}">{{ d }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Destination Name (GOJ agency/bank/etc)
+    <input name="destination_name" list="goj_list" placeholder="Start typing...">
+    <datalist id="goj_list">
+      {% for g in goj_agencies %}
+        <option value="{{ g }}"></option>
+      {% endfor %}
+    </datalist>
+  </label>
+
+  <label>Destination Area (Kingston & St. Andrew) <input name="destination_area" placeholder="e.g., Downtown, New Kingston, Half Way Tree"></label>
+
+  <label>Item Type
+    <select name="item_type">
+      <option value="">Select...</option>
+      {% for it in item_types %}
+        <option value="{{ it }}">{{ it }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Urgency Level
+    <select name="urgency_level">
+      {% for u in urgency_levels %}
+        <option value="{{ u }}">{{ u }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Required By Date <input type="date" name="required_by_date"></label>
+  <label>Required By Time <input type="time" name="required_by_time"></label>
+
+  <label>Notes <textarea name="notes" rows="3" placeholder="Any special instructions"></textarea></label>
+
+  <button class="btn" type="submit">Submit (Status = Pending)</button>
+</form>
+<p class="note">If Urgency is Urgent/Critical, Required By Date and Time are required.</p>
+{% endblock %}

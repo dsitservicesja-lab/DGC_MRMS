@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Welcome</h1>
+<p>Submit <b>Meeting</b> and <b>Messenger</b> requests. All requests start as <b>Pending</b>.</p>
+<ul>
+  <li><a class="btn" href="/meetings/new">Submit Meeting Request</a></li>
+  <li><a class="btn" href="/messenger/new">Submit Messenger Request</a></li>
+</ul>
+<p class="note">Admins approve/decline in the Admin panel.</p>
+{% endblock %}

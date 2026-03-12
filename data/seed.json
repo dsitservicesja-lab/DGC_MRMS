@@ -1,0 +1,390 @@
+{
+  "staff": [
+    {
+      "display": "Mrs. Yanique Fraser",
+      "branch": "Executive Branch",
+      "ext": "229",
+      "mobile": "",
+      "cug": "876 536 3741",
+      "office": "GC1A",
+      "floor": "1st"
+    },
+    {
+      "display": "Ms. Sancia Johnally-Haynes",
+      "branch": "Executive Branch",
+      "ext": "230",
+      "mobile": "",
+      "cug": "",
+      "office": "GC1B",
+      "floor": "1st"
+    },
+    {
+      "display": "Ms. Daneika Anderson",
+      "branch": "Analytical & Advisory Services",
+      "ext": "223",
+      "mobile": "",
+      "cug": "876 546 4961",
+      "office": "GC6B",
+      "floor": "1st"
+    },
+    {
+      "display": "Ms. Waveney Warrick",
+      "branch": "Analytical & Advisory Services",
+      "ext": "235",
+      "mobile": "",
+      "cug": "876 546 4813",
+      "office": "GC7B",
+      "floor": "1st"
+    },
+    {
+      "display": "Ms. Shermaine McKenzie",
+      "branch": "Analytical & Advisory Services",
+      "ext": "227",
+      "mobile": "",
+      "cug": "",
+      "office": "GC13C",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Sanya Kennedy",
+      "branch": "Analytical & Advisory Services",
+      "ext": "228",
+      "mobile": "",
+      "cug": "",
+      "office": "GC14",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Kevaughn Newland",
+      "branch": "Analytical & Advisory Services",
+      "ext": "228",
+      "mobile": "",
+      "cug": "",
+      "office": "GC14",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Angelo Samuels",
+      "branch": "Analytical & Advisory Services",
+      "ext": "228",
+      "mobile": "",
+      "cug": "",
+      "office": "GC14",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Chevanee\u2019 Cornwall",
+      "branch": "Analytical & Advisory Services",
+      "ext": "243",
+      "mobile": "",
+      "cug": "",
+      "office": "GC14",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mrs. Maxine Addiman",
+      "branch": "Analytical & Advisory Services",
+      "ext": "243",
+      "mobile": "",
+      "cug": "",
+      "office": "GC14",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Shanice Stennett",
+      "branch": "Analytical & Advisory Services",
+      "ext": "",
+      "mobile": "",
+      "cug": "",
+      "office": "GC14",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Fredricka Chung",
+      "branch": "Analytical & Advisory Services",
+      "ext": "255",
+      "mobile": "",
+      "cug": "",
+      "office": "GC2",
+      "floor": "1st"
+    },
+    {
+      "display": "Ms. Latoya Gayle",
+      "branch": "Finance & Accounts",
+      "ext": "246",
+      "mobile": "",
+      "cug": "876 536 3804",
+      "office": "GC10C",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Ackelia McLaren",
+      "branch": "Finance & Accounts",
+      "ext": "242",
+      "mobile": "",
+      "cug": "",
+      "office": "GC10A",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Amekie Anson",
+      "branch": "Finance & Accounts",
+      "ext": "237",
+      "mobile": "876 293 4330",
+      "cug": "",
+      "office": "GC10A",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Gabrielle Green",
+      "branch": "Public Procurement",
+      "ext": "248",
+      "mobile": "876 856 6229",
+      "cug": "876 546 4774",
+      "office": "GC10B",
+      "floor": "1st"
+    },
+    {
+      "display": "Mr. Ryan Warburton",
+      "branch": "Quality Assurance",
+      "ext": "231",
+      "mobile": "876 410 7590",
+      "cug": "876 546 4609",
+      "office": "GC2",
+      "floor": "1st"
+    },
+    {
+      "display": "Ms. Nellesha Samuels",
+      "branch": "HRM&A",
+      "ext": "256",
+      "mobile": "876 877 1062",
+      "cug": "",
+      "office": "GC12",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Shenai McFarlane",
+      "branch": "HRM&A",
+      "ext": "253",
+      "mobile": "876 298 2563",
+      "cug": "876 546 5006",
+      "office": "GC12",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Yanique McKenzie",
+      "branch": "HRM&A",
+      "ext": "249",
+      "mobile": "876 501 6788",
+      "cug": "876 546 5006",
+      "office": "GC12",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Demario Ewan",
+      "branch": "HRM&A",
+      "ext": "247",
+      "mobile": "876 869 9975",
+      "cug": "",
+      "office": "GC12",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Alfred Bryan",
+      "branch": "HRM&A / Administration",
+      "ext": "254",
+      "mobile": "876 834 1314",
+      "cug": "",
+      "office": "GC12",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Eaton Campbell",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 873 7292",
+      "cug": "",
+      "office": "GC4",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Christopher Small",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 208 9961",
+      "cug": "",
+      "office": "GC4",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Miguel Dennie",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 855 5076",
+      "cug": "",
+      "office": "GC4",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Troxel Orboine",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 790 8182",
+      "cug": "",
+      "office": "GC7C",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Michelle James",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 864 3654",
+      "cug": "",
+      "office": "GC27",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Robert Haynes",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 202 4610",
+      "cug": "",
+      "office": "\u2014",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Newton Pommells",
+      "branch": "Administration",
+      "ext": "222",
+      "mobile": "876 775 3616",
+      "cug": "",
+      "office": "GC15",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Damion Afflick",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 324 7005",
+      "cug": "",
+      "office": "GC23",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Taniesha Afflick",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 581 5343",
+      "cug": "",
+      "office": "GC23",
+      "floor": "Ground"
+    },
+    {
+      "display": "Ms. Claudette Pinnock",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 341 2283",
+      "cug": "",
+      "office": "GC22",
+      "floor": "1st"
+    },
+    {
+      "display": "Mrs. Demetre Dumay-White",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 348 4780",
+      "cug": "",
+      "office": "GC23",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Winston Brown",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 460 9339",
+      "cug": "",
+      "office": "GC4",
+      "floor": "Ground"
+    },
+    {
+      "display": "Mr. Osbourne Carter",
+      "branch": "Administration",
+      "ext": "",
+      "mobile": "876 460 5724",
+      "cug": "",
+      "office": "GC23",
+      "floor": "Ground"
+    }
+  ],
+  "meeting_locations": [
+    "GC1A - Government Chemist\u2019s Office",
+    "GC2 - Library / QA Office",
+    "GC12 - HRM&A Office",
+    "GC14 - Emerald Office",
+    "GC10D - Finance & Accounts Director\u2019s Office",
+    "GC10B - Conference Room",
+    "GC9 - Lunch Room",
+    "GC0 - Lobby",
+    "Outdoor",
+    "Other"
+  ],
+  "branches": [
+    "Administration",
+    "Analytical & Advisory Services",
+    "Executive Branch",
+    "Finance & Accounts",
+    "HRM&A",
+    "HRM&A / Administration",
+    "Public Procurement",
+    "Quality Assurance"
+  ],
+  "meeting_types": [
+    "Briefing",
+    "Interview",
+    "Training",
+    "External Visitor Meeting",
+    "Internal Meeting",
+    "Disciplinary/HR",
+    "Procurement/Vendor",
+    "Other"
+  ],
+  "confidential_opts": [
+    "Open",
+    "Confidential",
+    "Restricted"
+  ],
+  "urgency_levels": [
+    "Normal",
+    "Urgent",
+    "Critical"
+  ],
+  "delivery_types": [
+    "Courier (Incoming/Outgoing)",
+    "Bank",
+    "GOJ Agency",
+    "Post Office",
+    "Vendor",
+    "Other"
+  ],
+  "item_types": [
+    "Letter",
+    "Package",
+    "Documents",
+    "Cheque",
+    "Cash Deposit",
+    "Payment Voucher",
+    "Other"
+  ],
+  "goj_agencies": [
+    "Ministry of Health & Wellness (MOHW)",
+    "Ministry of Finance (MOF)",
+    "Tax Administration Jamaica (TAJ)",
+    "Passport, Immigration & Citizenship Agency (PICA)",
+    "Registrar General's Department (RGD)",
+    "National Works Agency (NWA)",
+    "National Environment & Planning Agency (NEPA)",
+    "Jamaica Customs Agency",
+    "Public Service Commission (PSC)",
+    "Office of the Director of Public Prosecutions (ODPP)"
+  ]
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ title if title else "DGC Requests" }}</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Department of Government Chemist • Requests & Approvals</div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/meetings/new">New Meeting Request</a>
+      <a href="/messenger/new">New Messenger Request</a>
+      {% if admin %}
+        <a href="/admin">Admin</a>
+        <a href="/logout">Logout</a>
+      {% else %}
+        <a href="/login">Admin Login</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">Internal system. Keep it boring and accurate.</footer>
+</body>
+</html>

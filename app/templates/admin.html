@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<h2>Pending Meetings</h2>
+<table>
+  <tr><th>ID</th><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Confidential</th><th>Action</th></tr>
+  {% for m in pending_meet %}
+  <tr>
+    <td>{{ m.id }}</td>
+    <td>{{ m.booking_id }}</td>
+    <td>{{ m.requested_by }}</td>
+    <td>{{ m.start_date }} {{ m.start_time }} - {{ m.end_date }} {{ m.end_time }}</td>
+    <td>{{ m.location }}</td>
+    <td>{{ m.confidential }}</td>
+    <td>
+      <form method="post" action="/admin/meetings/{{ m.id }}/status" class="inline">
+        <select name="status">
+          <option>Approved</option>
+          <option>Declined</option>
+          <option>Cancelled</option>
+          <option>Completed</option>
+        </select>
+        <button class="btn small" type="submit">Set</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Pending Messenger</h2>
+<table>
+  <tr><th>ID</th><th>Request</th><th>Requested By</th><th>Destination</th><th>Urgency</th><th>Required By</th><th>Action</th></tr>
+  {% for r in pending_msg %}
+  <tr>
+    <td>{{ r.id }}</td>
+    <td>{{ r.request_id }}</td>
+    <td>{{ r.requested_by }}</td>
+    <td>{{ r.destination_name }} ({{ r.destination_area }})</td>
+    <td>{{ r.urgency_level }}</td>
+    <td>{% if r.required_by_date %}{{ r.required_by_date }} {{ r.required_by_time }}{% endif %}</td>
+    <td>
+      <form method="post" action="/admin/messenger/{{ r.id }}/status" class="inline">
+        <select name="status">
+          <option>Approved</option>
+          <option>Declined</option>
+          <option>Cancelled</option>
+          <option>In Transit</option>
+          <option>Delivered</option>
+          <option>Completed</option>
+        </select>
+        <button class="btn small" type="submit">Set</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
