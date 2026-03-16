@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request, Form, Depends
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import FastAPI, Request, Form, Depends, HTTPException
+from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime, date
+from pathlib import Path
 
 from sqlmodel import Session, select
 from .db import init_db, get_session
@@ -17,6 +18,14 @@ app = FastAPI(title="DGC Requests & Approvals")
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+LOGO_PATH = Path("cropped-Logo.png")
+
+
+@app.get("/logo")
+def logo():
+    if LOGO_PATH.exists():
+        return FileResponse(LOGO_PATH)
+    raise HTTPException(status_code=404, detail="Logo not found")
 
 @app.on_event("startup")
 def startup():

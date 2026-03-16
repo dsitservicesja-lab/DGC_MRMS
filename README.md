@@ -108,3 +108,30 @@ curl http://127.0.0.1:8082/
 sudo ufw allow 8082/tcp
 sudo ufw reload
 ```
+
+## Safe update script (pull committed/synced changes only)
+
+Use `deploy/scripts/pull_synced_only.sh` on the server to update from GitHub safely.
+
+What it enforces:
+- stops if there are any local edits, staged files, or untracked files
+- stops if local commits are ahead/diverged from `origin/main`
+- fast-forwards only (no merge commits)
+
+Run:
+
+```bash
+cd /opt/DGC_IMS
+bash deploy/scripts/pull_synced_only.sh main
+```
+
+Optional environment variables:
+- `SERVICE_NAME` (default: `dgc-ims`)
+- `RESTART_SERVICE` (default: `1`; set `0` to skip service restart)
+
+Example:
+
+```bash
+cd /opt/DGC_IMS
+RESTART_SERVICE=0 bash deploy/scripts/pull_synced_only.sh main
+```
