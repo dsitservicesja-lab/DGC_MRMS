@@ -86,13 +86,39 @@ sudo nano /opt/DGC_IMS/.env
 
 Set at least:
 - `SECRET_KEY` to a new random value
-- `ADMIN_PASSWORD_HASH` and `ADMIN_SALT` to your own values
+- one admin auth option:
+	- `ADMIN_PASSWORD` (simple), or
+	- `ADMIN_PASSWORD_HASH` + `ADMIN_SALT` (advanced)
 
 Then restart:
 
 ```bash
 sudo systemctl restart dgc-ims
 ```
+
+### Admin login troubleshooting
+
+If admin login fails on server, set a plain password first:
+
+```bash
+sudo nano /opt/DGC_IMS/.env
+```
+
+Use:
+
+```env
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=ChangeMe!2026
+```
+
+Then restart:
+
+```bash
+sudo systemctl restart dgc-ims
+sudo journalctl -u dgc-ims -n 50 --no-pager
+```
+
+After login works, you can keep `ADMIN_PASSWORD` or move to `ADMIN_PASSWORD_HASH` + `ADMIN_SALT`.
 
 ### 5. Verify service
 
