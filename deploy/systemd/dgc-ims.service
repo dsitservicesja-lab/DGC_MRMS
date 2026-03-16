@@ -1,0 +1,16 @@
+[Unit]
+Description=DGC IMS FastAPI service
+After=network.target
+
+[Service]
+Type=simple
+User=dgcims
+Group=dgcims
+WorkingDirectory=/opt/DGC_IMS
+EnvironmentFile=/opt/DGC_IMS/.env
+ExecStart=/opt/DGC_IMS/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8082
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

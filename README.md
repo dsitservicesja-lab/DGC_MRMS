@@ -36,3 +36,75 @@ uvicorn app.main:app --reload
 
 Change these before deployment Mr Ewan by setting environment variables (see app/config.py).
 Seed data lives in `data/seed.json`.
+
+## Deploy to Linux server (/opt, port 8082)
+
+This repository now includes:
+- `deploy/scripts/deploy_to_opt.sh`
+- `deploy/systemd/dgc-ims.service`
+- `deploy/systemd/dgc-ims.env.example`
+
+### 1. Copy project to your server
+
+Example with git:
+
+```bash
+cd /opt
+sudo git clone <your-repo-url> DGC_IMS
+cd /opt/DGC_IMS
+```
+
+Or copy the folder contents to `/opt/DGC_IMS`.
+
+### 2. Install OS packages
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip
+```
+
+### 3. Run deployment script
+
+```bash
+cd /opt/DGC_IMS
+sudo bash deploy/scripts/deploy_to_opt.sh
+```
+
+The script will:
+- create a system user `dgcims`
+- install Python dependencies in `/opt/DGC_IMS/.venv`
+- install and start systemd service `dgc-ims`
+- run the app on `0.0.0.0:8082`
+
+### 4. Set production secrets
+
+Edit environment file:
+
+```bash
+sudo nano /opt/DGC_IMS/.env
+```
+
+Set at least:
+- `SECRET_KEY` to a new random value
+- `ADMIN_PASSWORD_HASH` and `ADMIN_SALT` to your own values
+
+Then restart:
+
+```bash
+sudo systemctl restart dgc-ims
+```
+
+### 5. Verify service
+
+```bash
+sudo systemctl status dgc-ims --no-pager
+sudo journalctl -u dgc-ims -n 100 --no-pager
+curl http://127.0.0.1:8082/
+```
+
+### 6. Optional firewall
+
+```bash
+sudo ufw allow 8082/tcp
+sudo ufw reload
+```
