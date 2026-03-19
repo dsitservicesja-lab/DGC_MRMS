@@ -16,10 +16,21 @@ from .seed import (
     get_list_categories,
     add_list_item,
     remove_list_item,
+    email_notifications_enabled,
+    set_email_notifications_enabled,
 )
 from .models import MeetingRequest, MessengerRequest, MeetingAttendee, Staff
-from .utils import next_meeting_booking_id, next_messenger_request_id, staff_autofill, check_meeting_conflict, staff_email, staff_emails_for_names
-from .auth import verify_password, is_admin
+from .utils import (
+    next_meeting_booking_id,
+    next_messenger_request_id,
+    staff_autofill,
+    check_meeting_conflict,
+    staff_email,
+    staff_emails_for_names,
+    staff_emails_for_roles,
+    staff_can_submit_requests,
+)
+from .auth import authenticate_user, is_admin, is_superadmin, can_view_requests
 from .config import SECRET_KEY
 from .notifications import (
     notify_meeting_submitted,
@@ -43,6 +54,7 @@ SYSTEM_LIST_LABELS = {
     "item_types": "Item Types",
     "goj_agencies": "GOJ Agencies",
 }
+STAFF_ROLES = ["superadmin", "admin", "requestor", "messenger"]
 
 
 @app.get("/logo")
@@ -103,26 +115,43 @@ def render_admin_settings(request: Request, session: Session, error: str | None 
     return templates.TemplateResponse("admin_system.html", {
         "request": request,
         "admin": True,
+        "superadmin": is_superadmin(request),
         "error": error,
         "labels": SYSTEM_LIST_LABELS,
         "categories": sorted(LIST_CATEGORIES),
         "lists": get_list_categories(session),
+        "email_notifications_enabled": email_notifications_enabled(),
     })
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request, "admin": is_admin(request)})
+    return templates.TemplateResponse("home.html", {
+        "request": request,
+        "admin": can_view_requests(request),
+        "superadmin": is_superadmin(request),
+    })
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error": None, "admin": is_admin(request)})
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "error": None,
+        "admin": can_view_requests(request),
+        "superadmin": is_superadmin(request),
+    })
 
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    if verify_password(username, password):
-        request.session["role"] = "admin"
+    role = authenticate_user(username, password)
+    if role:
+        request.session["role"] = role
         return RedirectResponse("/admin", status_code=303)
-    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials", "admin": False})
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "error": "Invalid credentials",
+        "admin": False,
+        "superadmin": False,
+    })
 
 @app.get("/logout")
 def logout(request: Request):
@@ -132,9 +161,15 @@ def logout(request: Request):
 @app.get("/meetings/new", response_class=HTMLResponse)
 def meeting_new(request: Request, session: Session = Depends(get_session)):
     l = lists(session)
+    requestors = [
+        s for s in l["staff"]
+        if str(s.get("role", "requestor")).strip().casefold() in {"requestor", "admin", "superadmin"}
+    ]
     return templates.TemplateResponse("meeting_new.html", {
         "request": request,
-        "admin": is_admin(request),
+        "admin": can_view_requests(request),
+        "superadmin": is_superadmin(request),
+        "requestors": requestors,
         "staff": l["staff"],
         "locations": l["meeting_locations"],
         "meeting_types": l["meeting_types"],
@@ -158,6 +193,11 @@ def meeting_create(
     other_attendees: str = Form(""),
     session: Session = Depends(get_session),
 ):
+    if not staff_can_submit_requests(session, requested_by):
+        return templates.TemplateResponse("error.html", {"request": request, "admin": is_admin(request),
+            "title":"Invalid Requestor",
+            "message":"Selected requester role cannot submit requests. Please choose a user with requestor/admin/superadmin role."})
+
     st = datetime.strptime(start_time, "%H:%M").time()
     et = datetime.strptime(end_time, "%H:%M").time()
     start_dt = datetime.combine(start_date, st)
@@ -206,7 +246,8 @@ def meeting_create(
 
     req_email = staff_email(session, requested_by)
     att_emails = staff_emails_for_names(session, normalized)
-    to_emails = list(dict.fromkeys(e for e in [req_email] + att_emails if e))
+    admin_emails = staff_emails_for_roles(session, ["admin", "superadmin"])
+    to_emails = list(dict.fromkeys(e for e in [req_email] + att_emails + admin_emails if e))
     notify_meeting_submitted(
         booking_id=m.booking_id,
         requested_by=requested_by,
@@ -225,9 +266,15 @@ def meeting_create(
 @app.get("/messenger/new", response_class=HTMLResponse)
 def messenger_new(request: Request, session: Session = Depends(get_session)):
     l = lists(session)
+    requestors = [
+        s for s in l["staff"]
+        if str(s.get("role", "requestor")).strip().casefold() in {"requestor", "admin", "superadmin"}
+    ]
     return templates.TemplateResponse("messenger_new.html", {
         "request": request,
-        "admin": is_admin(request),
+        "admin": can_view_requests(request),
+        "superadmin": is_superadmin(request),
+        "requestors": requestors,
         "staff": l["staff"],
         "delivery_types": l["delivery_types"],
         "item_types": l["item_types"],
@@ -251,6 +298,11 @@ def messenger_create(
     notes: str = Form(""),
     session: Session = Depends(get_session),
 ):
+    if not staff_can_submit_requests(session, requested_by):
+        return templates.TemplateResponse("error.html", {"request": request, "admin": is_admin(request),
+            "title":"Invalid Requestor",
+            "message":"Selected requester role cannot submit requests. Please choose a user with requestor/admin/superadmin role."})
+
     if urgency_level in ("Urgent","Critical") and (not required_by_date or not required_by_time):
         return templates.TemplateResponse("error.html", {"request": request, "admin": is_admin(request),
             "title":"Missing Required By",
@@ -282,6 +334,8 @@ def messenger_create(
     session.commit()
 
     req_email = staff_email(session, requested_by)
+    ops_emails = staff_emails_for_roles(session, ["messenger", "admin", "superadmin"])
+    to_emails = list(dict.fromkeys(e for e in [req_email] + ops_emails if e))
     notify_messenger_submitted(
         request_id=r.request_id,
         requested_by=requested_by,
@@ -293,17 +347,21 @@ def messenger_create(
         urgency_level=urgency_level,
         required_by_date=rbd,
         required_by_time=rbt,
-        to_email=req_email,
+        to_email=to_emails,
     )
     return RedirectResponse("/thanks", status_code=303)
 
 @app.get("/thanks", response_class=HTMLResponse)
 def thanks(request: Request):
-    return templates.TemplateResponse("thanks.html", {"request": request, "admin": is_admin(request)})
+    return templates.TemplateResponse("thanks.html", {
+        "request": request,
+        "admin": can_view_requests(request),
+        "superadmin": is_superadmin(request),
+    })
 
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request, session: Session = Depends(get_session)):
-    if not is_admin(request):
+    if not can_view_requests(request):
         return RedirectResponse("/login", status_code=303)
     pending_meet = session.exec(select(MeetingRequest).where(MeetingRequest.status=="Pending").order_by(MeetingRequest.submitted_ts.desc())).all()
     pending_msg = session.exec(select(MessengerRequest).where(MessengerRequest.status=="Pending").order_by(MessengerRequest.submitted_ts.desc())).all()
@@ -320,6 +378,7 @@ def admin_dashboard(request: Request, session: Session = Depends(get_session)):
     return templates.TemplateResponse("admin.html", {
         "request": request,
         "admin": True,
+        "superadmin": is_superadmin(request),
         "pending_meet": pending_meet,
         "pending_msg": pending_msg,
         "attendee_lookup": attendee_lookup,
@@ -328,7 +387,7 @@ def admin_dashboard(request: Request, session: Session = Depends(get_session)):
 
 @app.get("/admin/system", response_class=HTMLResponse)
 def admin_system_settings(request: Request, session: Session = Depends(get_session)):
-    if not is_admin(request):
+    if not is_superadmin(request):
         return RedirectResponse("/login", status_code=303)
     return render_admin_settings(request, session)
 
@@ -340,7 +399,7 @@ def admin_system_add(
     value: str = Form(...),
     session: Session = Depends(get_session),
 ):
-    if not is_admin(request):
+    if not is_superadmin(request):
         return RedirectResponse("/login", status_code=303)
 
     if category not in LIST_CATEGORIES:
@@ -363,7 +422,7 @@ def admin_system_remove(
     value: str = Form(...),
     session: Session = Depends(get_session),
 ):
-    if not is_admin(request):
+    if not is_superadmin(request):
         return RedirectResponse("/login", status_code=303)
 
     if category not in LIST_CATEGORIES:
@@ -379,14 +438,27 @@ def admin_system_remove(
     return RedirectResponse("/admin/system", status_code=303)
 
 
+@app.post("/admin/system/notifications")
+def admin_system_notifications_toggle(
+    request: Request,
+    email_notifications_enabled_value: str = Form("0"),
+):
+    if not is_superadmin(request):
+        return RedirectResponse("/login", status_code=303)
+    set_email_notifications_enabled(email_notifications_enabled_value == "1")
+    return RedirectResponse("/admin/system", status_code=303)
+
+
 @app.get("/admin/users", response_class=HTMLResponse)
 def admin_users(request: Request, session: Session = Depends(get_session)):
-    if not is_admin(request):
+    if not is_superadmin(request):
         return RedirectResponse("/login", status_code=303)
     users = session.exec(select(Staff).order_by(Staff.display)).all()
     return templates.TemplateResponse("admin_users.html", {
         "request": request,
         "admin": True,
+        "superadmin": True,
+        "roles": STAFF_ROLES,
         "users": users,
         "error": None,
     })
@@ -403,9 +475,10 @@ def admin_user_add(
     office: str = Form(""),
     floor: str = Form(""),
     email: str = Form(""),
+    role: str = Form("requestor"),
     session: Session = Depends(get_session),
 ):
-    if not is_admin(request):
+    if not is_superadmin(request):
         return RedirectResponse("/login", status_code=303)
 
     display_clean = display.strip()
@@ -414,6 +487,8 @@ def admin_user_add(
         return templates.TemplateResponse("admin_users.html", {
             "request": request,
             "admin": True,
+            "superadmin": True,
+            "roles": STAFF_ROLES,
             "users": users,
             "error": "Display name is required.",
         })
@@ -424,12 +499,19 @@ def admin_user_add(
         return templates.TemplateResponse("admin_users.html", {
             "request": request,
             "admin": True,
+            "superadmin": True,
+            "roles": STAFF_ROLES,
             "users": users,
             "error": f"A user named '{display_clean}' already exists.",
         })
 
+    role_clean = role.strip().casefold()
+    if role_clean not in STAFF_ROLES:
+        role_clean = "requestor"
+
     session.add(Staff(
         display=display_clean,
+        role=role_clean,
         branch=branch.strip(),
         ext=ext.strip(),
         mobile=mobile.strip(),
@@ -454,9 +536,10 @@ def admin_user_update(
     office: str = Form(""),
     floor: str = Form(""),
     email: str = Form(""),
+    role: str = Form("requestor"),
     session: Session = Depends(get_session),
 ):
-    if not is_admin(request):
+    if not is_superadmin(request):
         return RedirectResponse("/login", status_code=303)
 
     user = session.get(Staff, uid)
@@ -471,7 +554,12 @@ def admin_user_update(
     if any(u.id != uid and u.display.casefold() == display_clean.casefold() for u in existing):
         return RedirectResponse("/admin/users", status_code=303)
 
+    role_clean = role.strip().casefold()
+    if role_clean not in STAFF_ROLES:
+        role_clean = "requestor"
+
     user.display = display_clean
+    user.role = role_clean
     user.branch = branch.strip()
     user.ext = ext.strip()
     user.mobile = mobile.strip()
@@ -486,7 +574,7 @@ def admin_user_update(
 
 @app.post("/admin/users/{uid}/delete")
 def admin_user_delete(request: Request, uid: int, session: Session = Depends(get_session)):
-    if not is_admin(request):
+    if not is_superadmin(request):
         return RedirectResponse("/login", status_code=303)
     user = session.get(Staff, uid)
     if user:
@@ -496,7 +584,7 @@ def admin_user_delete(request: Request, uid: int, session: Session = Depends(get
 
 @app.post("/admin/meetings/{mid}/status")
 def admin_meeting_status(request: Request, mid: int, status: str = Form(...), session: Session = Depends(get_session)):
-    if not is_admin(request):
+    if not can_view_requests(request):
         return RedirectResponse("/login", status_code=303)
     m = session.get(MeetingRequest, mid)
     if m:
@@ -523,7 +611,7 @@ def admin_meeting_status(request: Request, mid: int, status: str = Form(...), se
 
 @app.post("/admin/messenger/{rid}/status")
 def admin_messenger_status(request: Request, rid: int, status: str = Form(...), session: Session = Depends(get_session)):
-    if not is_admin(request):
+    if not can_view_requests(request):
         return RedirectResponse("/login", status_code=303)
     r = session.get(MessengerRequest, rid)
     if r:
@@ -531,12 +619,16 @@ def admin_messenger_status(request: Request, rid: int, status: str = Form(...), 
         session.add(r)
         session.commit()
         req_email = staff_email(session, r.requested_by)
+        to_emails = [req_email] if req_email else []
+        if status == "Approved":
+            ops_emails = staff_emails_for_roles(session, ["messenger", "admin", "superadmin"])
+            to_emails = list(dict.fromkeys(e for e in to_emails + ops_emails if e))
         notify_messenger_status(
             request_id=r.request_id,
             requested_by=r.requested_by,
             status=status,
             destination_name=r.destination_name,
             destination_area=r.destination_area,
-            to_email=req_email,
+            to_email=to_emails,
         )
     return RedirectResponse("/admin", status_code=303)

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Admin Login</h1>
-<p class="lead">Sign in with administrator credentials to review and process requests.</p>
+<h1>Admin/Superadmin Login</h1>
+<p class="lead">Sign in with admin or superadmin credentials to review and process requests.</p>
 {% if error %}<div class="alert">{{ error }}</div>{% endif %}
 <form method="post" class="card">
   <label>Username <input name="username" required></label>

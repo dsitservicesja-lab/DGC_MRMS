@@ -3,8 +3,10 @@
 <h1>Admin Dashboard</h1>
 <p class="lead">Review pending requests and update status actions for meetings and messenger items.</p>
 <p>
-  <a class="btn small" href="/admin/users">Manage Staff Users</a>
-  <a class="btn small" href="/admin/system">Manage System Settings</a>
+  {% if superadmin %}
+    <a class="btn small" href="/admin/users">Manage Staff Users</a>
+    <a class="btn small" href="/admin/system">Manage System Settings</a>
+  {% endif %}
 </p>
 
 <h2>Pending Meetings</h2>

@@ -8,7 +8,7 @@
   <label>Requested By
     <select name="requested_by" required>
       <option value="">Select...</option>
-      {% for s in staff %}
+      {% for s in requestors %}
         <option value="{{ s.display }}">{{ s.display }}</option>
       {% endfor %}
     </select>

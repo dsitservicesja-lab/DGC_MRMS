@@ -10,6 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from .config import EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASSWORD, EMAIL_FROM, EMAIL_ENABLED
+from .seed import email_notifications_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,10 @@ def _badge(status: str) -> str:
 
 
 def _send(to_list: list[str], subject: str, html: str) -> None:
-    if not EMAIL_ENABLED or not to_list:
+    if not EMAIL_ENABLED or not email_notifications_enabled() or not to_list:
+        return
+    if not EMAIL_USER or not EMAIL_PASSWORD:
+        logger.warning("Email skipped: EMAIL_USER/EMAIL_PASSWORD not configured")
         return
     try:
         msg = MIMEMultipart("alternative")
@@ -169,7 +173,7 @@ def notify_messenger_submitted(
     urgency_level: str,
     required_by_date,
     required_by_time,
-    to_email: str,
+    to_email: str | list[str],
 ) -> None:
     subject = f"Messenger Request Submitted – {request_id}"
     rbd = f"{required_by_date} {required_by_time}" if required_by_date else "—"
@@ -201,7 +205,7 @@ def notify_messenger_status(
     status: str,
     destination_name: str,
     destination_area: str,
-    to_email: str,
+    to_email: str | list[str],
 ) -> None:
     subject = f"Messenger Request {request_id} – {status}"
     dest = f"{destination_name} ({destination_area})" if destination_area else destination_name or "—"

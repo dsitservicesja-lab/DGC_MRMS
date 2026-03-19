@@ -4,6 +4,8 @@ This is a runnable starter web app that mirrors an Excel workflow:
 - Staff submit **Meeting** and **Messenger** requests (Status = Pending only)
 - Admin approves/declines from an Admin dashboard
 - Meeting conflict checks enforce a **15-minute gap** per location
+- Roles: **superadmin**, **admin**, **requestor**, **messenger**
+- Superadmin can manage users/roles and disable email notifications globally
 
 ## Quick start
 
@@ -32,6 +34,10 @@ uvicorn app.main:app --reload
 
 ## Admin login (default)
 - Username: `admin`
+- Password: `ChangeMe!2026`
+
+## Superadmin login (default)
+- Username: `superadmin`
 - Password: `ChangeMe!2026`
 
 Change these before deployment Mr Ewan by setting environment variables (see app/config.py).

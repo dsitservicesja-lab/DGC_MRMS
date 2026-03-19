@@ -4,6 +4,17 @@
 <p class="lead">Manage dropdown options used across meeting and messenger request forms.</p>
 <p><a class="btn small" href="/admin">Back to Dashboard</a></p>
 
+<section class="card">
+  <h2>Email Notifications</h2>
+  <form method="post" action="/admin/system/notifications" class="inline">
+    <label style="display:flex;flex-direction:row;align-items:center;gap:8px;">
+      <input type="checkbox" name="email_notifications_enabled_value" value="1" {% if email_notifications_enabled %}checked{% endif %}>
+      Enable email notifications
+    </label>
+    <button class="btn small" type="submit">Save</button>
+  </form>
+</section>
+
 {% if error %}
   <p class="alert">{{ error }}</p>
 {% endif %}

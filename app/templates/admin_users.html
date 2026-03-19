@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Manage Staff Users</h1>
-<p class="lead">Add, edit, or remove staff users. Changes update request forms immediately.</p>
+<p class="lead">Add, edit, or remove staff users, including role assignment and email for notifications.</p>
 <p>
   <a class="btn small" href="/admin">Back to Dashboard</a>
   <a class="btn small" href="/admin/system">Manage System Settings</a>
@@ -14,6 +14,13 @@
   {% endif %}
   <form method="post" action="/admin/users" class="grid">
     <label>Display Name <input name="display" required></label>
+    <label>Role
+      <select name="role" required>
+        {% for role in roles %}
+          <option value="{{ role }}" {% if role == "requestor" %}selected{% endif %}>{{ role|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </label>
     <label>Branch <input name="branch"></label>
     <label>Extension <input name="ext"></label>
     <label>Mobile <input name="mobile"></label>
@@ -28,12 +35,17 @@
 <h2>Existing Users</h2>
 <section class="card">
 <table>
-  <tr><th>Name</th><th>Branch</th><th>Ext</th><th>Mobile</th><th>CUG</th><th>Office</th><th>Floor</th><th>Email</th><th>Actions</th></tr>
+  <tr><th>Name</th><th>Role</th><th>Branch</th><th>Ext</th><th>Mobile</th><th>CUG</th><th>Office</th><th>Floor</th><th>Email</th><th>Actions</th></tr>
   {% for u in users %}
   <tr>
-    <td colspan="9">
+    <td colspan="10">
       <form method="post" action="/admin/users/{{ u.id }}/update" class="admin-user-row">
         <input name="display" value="{{ u.display }}" required>
+        <select name="role" required>
+          {% for role in roles %}
+            <option value="{{ role }}" {% if u.role == role %}selected{% endif %}>{{ role|capitalize }}</option>
+          {% endfor %}
+        </select>
         <input name="branch" value="{{ u.branch }}">
         <input name="ext" value="{{ u.ext }}">
         <input name="mobile" value="{{ u.mobile }}">

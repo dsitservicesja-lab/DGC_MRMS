@@ -5,6 +5,7 @@ from sqlmodel import SQLModel, Field
 class Staff(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     display: str = Field(index=True)
+    role: str = "requestor"
     branch: str
     ext: str = ""
     mobile: str = ""

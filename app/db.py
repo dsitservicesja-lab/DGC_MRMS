@@ -17,6 +17,7 @@ def _migrate() -> None:
     with engine.connect() as conn:
         for stmt in [
             "ALTER TABLE staff ADD COLUMN email TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE staff ADD COLUMN role TEXT NOT NULL DEFAULT 'requestor'",
         ]:
             try:
                 conn.execute(text(stmt))

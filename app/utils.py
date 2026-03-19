@@ -60,3 +60,24 @@ def staff_emails_for_names(session: Session, names: list[str]) -> list[str]:
         if e:
             result.append(e)
     return result
+
+
+def staff_emails_for_roles(session: Session, roles: list[str]) -> list[str]:
+    normalized = {r.strip().casefold() for r in roles if r and r.strip()}
+    result: list[str] = []
+    users = session.exec(select(Staff)).all()
+    for user in users:
+        if (user.role or "").strip().casefold() in normalized:
+            email = (user.email or "").strip()
+            if email:
+                result.append(email)
+    return result
+
+
+def staff_role(session: Session, display_name: str) -> str:
+    s = session.exec(select(Staff).where(Staff.display == display_name)).first()
+    return (s.role or "").strip().casefold() if s else ""
+
+
+def staff_can_submit_requests(session: Session, display_name: str) -> bool:
+    return staff_role(session, display_name) in {"requestor", "admin", "superadmin"}

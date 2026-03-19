@@ -15,13 +15,23 @@ LIST_CATEGORIES = {
     "goj_agencies",
 }
 
+DEFAULT_APP_SETTINGS = {
+    "email_notifications_enabled": True,
+}
+
 
 def _data_path() -> Path:
     return Path(__file__).resolve().parents[1] / "data" / "seed.json"
 
 
 def read_seed_data() -> dict:
-    return json.loads(_data_path().read_text(encoding="utf-8"))
+    data = json.loads(_data_path().read_text(encoding="utf-8"))
+    if "app_settings" not in data or not isinstance(data["app_settings"], dict):
+        data["app_settings"] = dict(DEFAULT_APP_SETTINGS)
+    else:
+        for k, v in DEFAULT_APP_SETTINGS.items():
+            data["app_settings"].setdefault(k, v)
+    return data
 
 
 def write_seed_data(data: dict) -> None:
@@ -49,16 +59,31 @@ def get_lists(session: Session | None = None):
     data["staff"] = [
         {
             "display": s.display,
+            "role": s.role,
             "branch": s.branch,
             "ext": s.ext,
             "mobile": s.mobile,
             "cug": s.cug,
             "office": s.office,
             "floor": s.floor,
+            "email": s.email,
         }
         for s in staff
     ]
     return data
+
+
+def email_notifications_enabled() -> bool:
+    data = read_seed_data()
+    return bool(data.get("app_settings", {}).get("email_notifications_enabled", True))
+
+
+def set_email_notifications_enabled(enabled: bool) -> None:
+    data = read_seed_data()
+    settings = data.get("app_settings", {})
+    settings["email_notifications_enabled"] = bool(enabled)
+    data["app_settings"] = settings
+    write_seed_data(data)
 
 
 def get_list_categories(session: Session | None = None) -> dict[str, list[str]]:
