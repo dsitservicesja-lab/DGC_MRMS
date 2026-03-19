@@ -10,10 +10,22 @@ set -euo pipefail
 #   RESTART_SERVICE=1   # set to 0 to skip restart
 
 BRANCH=${1:-main}
-APP_DIR=${APP_DIR:-/opt/DGC_IMS}
 REMOTE=${REMOTE:-origin}
 SERVICE_NAME=${SERVICE_NAME:-dgc-ims}
 RESTART_SERVICE=${RESTART_SERVICE:-1}
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+SCRIPT_REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
+
+if [[ -z "${APP_DIR:-}" ]]; then
+  if git -C "$SCRIPT_REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    APP_DIR="$SCRIPT_REPO_ROOT"
+  elif git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    APP_DIR=$(pwd)
+  else
+    APP_DIR="/opt/DGC_IMS"
+  fi
+fi
 
 if [[ ! -d "$APP_DIR" ]]; then
   echo "Abort: APP_DIR '$APP_DIR' does not exist."
@@ -23,7 +35,7 @@ fi
 cd "$APP_DIR"
 
 # Ensure this is a git repository.
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+if ! git -C "$APP_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Abort: '$APP_DIR' is not a git repository."
   exit 1
 fi
