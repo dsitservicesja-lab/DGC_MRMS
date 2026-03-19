@@ -11,6 +11,7 @@ class Staff(SQLModel, table=True):
     cug: str = ""
     office: str = ""
     floor: str = ""
+    email: str = ""
 
 class MeetingRequest(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

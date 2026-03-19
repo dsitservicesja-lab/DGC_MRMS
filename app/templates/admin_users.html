@@ -20,6 +20,7 @@
     <label>CUG <input name="cug"></label>
     <label>Office <input name="office"></label>
     <label>Floor <input name="floor"></label>
+    <label>Email <input name="email" type="email" placeholder="name@example.com"></label>
     <button class="btn" type="submit">Add User</button>
   </form>
 </section>
@@ -27,10 +28,10 @@
 <h2>Existing Users</h2>
 <section class="card">
 <table>
-  <tr><th>Name</th><th>Branch</th><th>Ext</th><th>Mobile</th><th>CUG</th><th>Office</th><th>Floor</th><th>Actions</th></tr>
+  <tr><th>Name</th><th>Branch</th><th>Ext</th><th>Mobile</th><th>CUG</th><th>Office</th><th>Floor</th><th>Email</th><th>Actions</th></tr>
   {% for u in users %}
   <tr>
-    <td colspan="8">
+    <td colspan="9">
       <form method="post" action="/admin/users/{{ u.id }}/update" class="admin-user-row">
         <input name="display" value="{{ u.display }}" required>
         <input name="branch" value="{{ u.branch }}">
@@ -39,6 +40,7 @@
         <input name="cug" value="{{ u.cug }}">
         <input name="office" value="{{ u.office }}">
         <input name="floor" value="{{ u.floor }}">
+        <input name="email" type="email" value="{{ u.email }}" placeholder="email">
         <button class="btn small" type="submit">Save</button>
       </form>
       <form method="post" action="/admin/users/{{ u.id }}/delete" class="inline" onsubmit="return confirm('Delete this user?');">

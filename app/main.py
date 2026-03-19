@@ -18,9 +18,15 @@ from .seed import (
     remove_list_item,
 )
 from .models import MeetingRequest, MessengerRequest, MeetingAttendee, Staff
-from .utils import next_meeting_booking_id, next_messenger_request_id, staff_autofill, check_meeting_conflict
+from .utils import next_meeting_booking_id, next_messenger_request_id, staff_autofill, check_meeting_conflict, staff_email, staff_emails_for_names
 from .auth import verify_password, is_admin
 from .config import SECRET_KEY
+from .notifications import (
+    notify_meeting_submitted,
+    notify_meeting_status,
+    notify_messenger_submitted,
+    notify_messenger_status,
+)
 
 app = FastAPI(title="DGC Requests & Approvals")
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
@@ -197,6 +203,23 @@ def meeting_create(
     for attendee in normalized:
         session.add(MeetingAttendee(meeting_id=m.id, attendee_name=attendee))
     session.commit()
+
+    req_email = staff_email(session, requested_by)
+    att_emails = staff_emails_for_names(session, normalized)
+    to_emails = list(dict.fromkeys(e for e in [req_email] + att_emails if e))
+    notify_meeting_submitted(
+        booking_id=m.booking_id,
+        requested_by=requested_by,
+        start_date=m.start_date,
+        start_time=m.start_time,
+        end_date=m.end_date,
+        end_time=m.end_time,
+        location=location,
+        purpose=purpose,
+        meeting_type=meeting_type,
+        attendees=normalized,
+        to_emails=to_emails,
+    )
     return RedirectResponse("/thanks", status_code=303)
 
 @app.get("/messenger/new", response_class=HTMLResponse)
@@ -257,6 +280,21 @@ def messenger_create(
     )
     session.add(r)
     session.commit()
+
+    req_email = staff_email(session, requested_by)
+    notify_messenger_submitted(
+        request_id=r.request_id,
+        requested_by=requested_by,
+        pickup_location=pickup_location,
+        delivery_type=delivery_type,
+        destination_name=destination_name,
+        destination_area=destination_area,
+        item_type=item_type,
+        urgency_level=urgency_level,
+        required_by_date=rbd,
+        required_by_time=rbt,
+        to_email=req_email,
+    )
     return RedirectResponse("/thanks", status_code=303)
 
 @app.get("/thanks", response_class=HTMLResponse)
@@ -364,6 +402,7 @@ def admin_user_add(
     cug: str = Form(""),
     office: str = Form(""),
     floor: str = Form(""),
+    email: str = Form(""),
     session: Session = Depends(get_session),
 ):
     if not is_admin(request):
@@ -397,6 +436,7 @@ def admin_user_add(
         cug=cug.strip(),
         office=office.strip(),
         floor=floor.strip(),
+        email=email.strip(),
     ))
     session.commit()
     return RedirectResponse("/admin/users", status_code=303)
@@ -413,6 +453,7 @@ def admin_user_update(
     cug: str = Form(""),
     office: str = Form(""),
     floor: str = Form(""),
+    email: str = Form(""),
     session: Session = Depends(get_session),
 ):
     if not is_admin(request):
@@ -437,6 +478,7 @@ def admin_user_update(
     user.cug = cug.strip()
     user.office = office.strip()
     user.floor = floor.strip()
+    user.email = email.strip()
     session.add(user)
     session.commit()
     return RedirectResponse("/admin/users", status_code=303)
@@ -459,7 +501,24 @@ def admin_meeting_status(request: Request, mid: int, status: str = Form(...), se
     m = session.get(MeetingRequest, mid)
     if m:
         m.status = status
-        session.add(m); session.commit()
+        session.add(m)
+        session.commit()
+        att_rows = session.exec(select(MeetingAttendee).where(MeetingAttendee.meeting_id == m.id)).all()
+        att_names = [a.attendee_name for a in att_rows]
+        to_emails = list(dict.fromkeys(
+            e for e in staff_emails_for_names(session, [m.requested_by] + att_names) if e
+        ))
+        notify_meeting_status(
+            booking_id=m.booking_id,
+            requested_by=m.requested_by,
+            status=status,
+            start_date=m.start_date,
+            start_time=m.start_time,
+            end_date=m.end_date,
+            end_time=m.end_time,
+            location=m.location,
+            to_emails=to_emails,
+        )
     return RedirectResponse("/admin", status_code=303)
 
 @app.post("/admin/messenger/{rid}/status")
@@ -469,5 +528,15 @@ def admin_messenger_status(request: Request, rid: int, status: str = Form(...), 
     r = session.get(MessengerRequest, rid)
     if r:
         r.status = status
-        session.add(r); session.commit()
+        session.add(r)
+        session.commit()
+        req_email = staff_email(session, r.requested_by)
+        notify_messenger_status(
+            request_id=r.request_id,
+            requested_by=r.requested_by,
+            status=status,
+            destination_name=r.destination_name,
+            destination_area=r.destination_area,
+            to_email=req_email,
+        )
     return RedirectResponse("/admin", status_code=303)

@@ -7,3 +7,11 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "6ce2ad1f24c2741392733fbacbb6e12b")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dgc.db")
+
+# Email / notification settings
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USER = os.getenv("EMAIL_USER", "dgcjamaica@gmail.com")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "vvyn fjap lrpt injw")
+EMAIL_FROM = os.getenv("EMAIL_FROM", "DGC Requests <dgcjamaica@gmail.com>")
+EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "1").strip() == "1"

@@ -236,7 +236,7 @@ th {
 
 .admin-user-row {
 	display: grid;
-	grid-template-columns: 1.3fr repeat(6, 1fr) auto;
+	grid-template-columns: 1.3fr repeat(7, 1fr) auto;
 	gap: 8px;
 	align-items: center;
 	margin-bottom: 8px;

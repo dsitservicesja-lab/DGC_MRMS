@@ -46,3 +46,17 @@ def check_meeting_conflict(session: Session, start_dt: datetime, end_dt: datetim
         if overlaps(window_start, window_end, es, ee):
             return m
     return None
+
+
+def staff_email(session: Session, display_name: str) -> str:
+    s = session.exec(select(Staff).where(Staff.display == display_name)).first()
+    return (s.email or "").strip() if s else ""
+
+
+def staff_emails_for_names(session: Session, names: list[str]) -> list[str]:
+    result = []
+    for name in names:
+        e = staff_email(session, name)
+        if e:
+            result.append(e)
+    return result
