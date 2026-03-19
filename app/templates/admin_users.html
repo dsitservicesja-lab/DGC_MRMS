@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Manage Staff Users</h1>
+<p class="lead">Add, edit, or remove staff users. Changes update request forms immediately.</p>
+
+<section class="card">
+  <h2>Add New User</h2>
+  {% if error %}
+    <p class="alert">{{ error }}</p>
+  {% endif %}
+  <form method="post" action="/admin/users" class="grid">
+    <label>Display Name <input name="display" required></label>
+    <label>Branch <input name="branch"></label>
+    <label>Extension <input name="ext"></label>
+    <label>Mobile <input name="mobile"></label>
+    <label>CUG <input name="cug"></label>
+    <label>Office <input name="office"></label>
+    <label>Floor <input name="floor"></label>
+    <button class="btn" type="submit">Add User</button>
+  </form>
+</section>
+
+<h2>Existing Users</h2>
+<section class="card">
+<table>
+  <tr><th>Name</th><th>Branch</th><th>Ext</th><th>Mobile</th><th>CUG</th><th>Office</th><th>Floor</th><th>Actions</th></tr>
+  {% for u in users %}
+  <tr>
+    <td colspan="8">
+      <form method="post" action="/admin/users/{{ u.id }}/update" class="admin-user-row">
+        <input name="display" value="{{ u.display }}" required>
+        <input name="branch" value="{{ u.branch }}">
+        <input name="ext" value="{{ u.ext }}">
+        <input name="mobile" value="{{ u.mobile }}">
+        <input name="cug" value="{{ u.cug }}">
+        <input name="office" value="{{ u.office }}">
+        <input name="floor" value="{{ u.floor }}">
+        <button class="btn small" type="submit">Save</button>
+      </form>
+      <form method="post" action="/admin/users/{{ u.id }}/delete" class="inline" onsubmit="return confirm('Delete this user?');">
+        <button class="btn small" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</section>
+{% endblock %}

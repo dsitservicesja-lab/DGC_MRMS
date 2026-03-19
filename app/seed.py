@@ -14,6 +14,26 @@ def seed_if_empty():
             session.add(Staff(**s))
         session.commit()
 
-def get_lists():
+def get_lists(session: Session | None = None):
     data_path = Path(__file__).resolve().parents[1] / "data" / "seed.json"
-    return json.loads(data_path.read_text(encoding="utf-8"))
+    data = json.loads(data_path.read_text(encoding="utf-8"))
+
+    if session is None:
+        with Session(engine) as db_session:
+            staff = db_session.exec(select(Staff).order_by(Staff.display)).all()
+    else:
+        staff = session.exec(select(Staff).order_by(Staff.display)).all()
+
+    data["staff"] = [
+        {
+            "display": s.display,
+            "branch": s.branch,
+            "ext": s.ext,
+            "mobile": s.mobile,
+            "cug": s.cug,
+            "office": s.office,
+            "floor": s.floor,
+        }
+        for s in staff
+    ]
+    return data

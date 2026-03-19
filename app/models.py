@@ -36,6 +36,12 @@ class MeetingRequest(SQLModel, table=True):
     status: str = "Pending"
     submitted_ts: datetime = Field(default_factory=datetime.utcnow)
 
+
+class MeetingAttendee(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    meeting_id: int = Field(index=True, foreign_key="meetingrequest.id")
+    attendee_name: str = Field(index=True)
+
 class MessengerRequest(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     request_id: str = Field(index=True, unique=True)

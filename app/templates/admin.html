@@ -2,11 +2,12 @@
 {% block content %}
 <h1>Admin Dashboard</h1>
 <p class="lead">Review pending requests and update status actions for meetings and messenger items.</p>
+<p><a class="btn small" href="/admin/users">Manage Staff Users</a></p>
 
 <h2>Pending Meetings</h2>
 <section class="card">
 <table>
-  <tr><th>ID</th><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Confidential</th><th>Action</th></tr>
+  <tr><th>ID</th><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Attendees</th><th>Confidential</th><th>Action</th></tr>
   {% for m in pending_meet %}
   <tr>
     <td>{{ m.id }}</td>
@@ -14,6 +15,13 @@
     <td>{{ m.requested_by }}</td>
     <td>{{ m.start_date }} {{ m.start_time }} - {{ m.end_date }} {{ m.end_time }}</td>
     <td>{{ m.location }}</td>
+    <td>
+      {% set attendees = attendee_lookup.get(m.id, []) %}
+      {{ attendees|length }}
+      {% if attendees %}
+        <br><span class="note">{{ attendees|join(", ") }}</span>
+      {% endif %}
+    </td>
     <td>{{ m.confidential }}</td>
     <td>
       <form method="post" action="/admin/meetings/{{ m.id }}/status" class="inline">

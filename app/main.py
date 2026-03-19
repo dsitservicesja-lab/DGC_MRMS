@@ -4,12 +4,13 @@ from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime, date
+import re
 from pathlib import Path
 
 from sqlmodel import Session, select
 from .db import init_db, get_session
 from .seed import seed_if_empty, get_lists
-from .models import MeetingRequest, MessengerRequest
+from .models import MeetingRequest, MessengerRequest, MeetingAttendee, Staff
 from .utils import next_meeting_booking_id, next_messenger_request_id, staff_autofill, check_meeting_conflict
 from .auth import verify_password, is_admin
 from .config import SECRET_KEY
@@ -32,8 +33,35 @@ def startup():
     init_db()
     seed_if_empty()
 
-def lists():
-    return get_lists()
+def lists(session: Session):
+    return get_lists(session)
+
+
+def split_attendees(raw_text: str) -> list[str]:
+    if not raw_text:
+        return []
+    parts = re.split(r"[\n,;]+", raw_text)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def dedupe_keep_order(values: list[str]) -> list[str]:
+    seen = set()
+    cleaned: list[str] = []
+    for v in values:
+        key = v.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(v)
+    return cleaned
+
+
+def attendees_from_legacy(m: MeetingRequest) -> list[str]:
+    values: list[str] = []
+    if m.expected_attendee:
+        values.append(m.expected_attendee.strip())
+    values.extend(split_attendees(m.attendees_details))
+    return dedupe_keep_order([v for v in values if v])
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
@@ -56,8 +84,8 @@ def logout(request: Request):
     return RedirectResponse("/", status_code=303)
 
 @app.get("/meetings/new", response_class=HTMLResponse)
-def meeting_new(request: Request):
-    l = lists()
+def meeting_new(request: Request, session: Session = Depends(get_session)):
+    l = lists(session)
     return templates.TemplateResponse("meeting_new.html", {
         "request": request,
         "admin": is_admin(request),
@@ -80,8 +108,8 @@ def meeting_create(
     purpose: str = Form(""),
     meeting_type: str = Form(""),
     confidential: str = Form("Open"),
-    expected_attendee: str = Form(""),
-    attendees_details: str = Form(""),
+    attendees: list[str] = Form(default=[]),
+    other_attendees: str = Form(""),
     session: Session = Depends(get_session),
 ):
     st = datetime.strptime(start_time, "%H:%M").time()
@@ -93,6 +121,13 @@ def meeting_create(
         return templates.TemplateResponse("error.html", {"request": request, "admin": is_admin(request),
             "title":"Meeting Conflict",
             "message": f"Conflict with existing booking {conflict.booking_id} at {conflict.location}. 15-minute gap required."})
+
+    normalized = dedupe_keep_order([a.strip() for a in attendees if a and a.strip()] + split_attendees(other_attendees))
+    if not normalized:
+        return templates.TemplateResponse("error.html", {"request": request, "admin": is_admin(request),
+            "title":"Missing Attendees",
+            "message":"Please choose at least one attendee or provide attendee names."})
+
     booking_id = next_meeting_booking_id(session)
     auto = staff_autofill(session, requested_by)
     m = MeetingRequest(
@@ -111,17 +146,22 @@ def meeting_create(
         purpose=purpose,
         meeting_type=meeting_type,
         confidential=confidential,
-        expected_attendee=expected_attendee,
-        attendees_details=attendees_details,
+        expected_attendee=normalized[0],
+        attendees_details="; ".join(normalized),
         status="Pending",
     )
     session.add(m)
     session.commit()
+    session.refresh(m)
+
+    for attendee in normalized:
+        session.add(MeetingAttendee(meeting_id=m.id, attendee_name=attendee))
+    session.commit()
     return RedirectResponse("/thanks", status_code=303)
 
 @app.get("/messenger/new", response_class=HTMLResponse)
-def messenger_new(request: Request):
-    l = lists()
+def messenger_new(request: Request, session: Session = Depends(get_session)):
+    l = lists(session)
     return templates.TemplateResponse("messenger_new.html", {
         "request": request,
         "admin": is_admin(request),
@@ -189,7 +229,135 @@ def admin_dashboard(request: Request, session: Session = Depends(get_session)):
         return RedirectResponse("/login", status_code=303)
     pending_meet = session.exec(select(MeetingRequest).where(MeetingRequest.status=="Pending").order_by(MeetingRequest.submitted_ts.desc())).all()
     pending_msg = session.exec(select(MessengerRequest).where(MessengerRequest.status=="Pending").order_by(MessengerRequest.submitted_ts.desc())).all()
-    return templates.TemplateResponse("admin.html", {"request": request, "admin": True, "pending_meet": pending_meet, "pending_msg": pending_msg})
+
+    attendees = session.exec(select(MeetingAttendee)).all()
+    attendee_lookup: dict[int, list[str]] = {}
+    for a in attendees:
+        attendee_lookup.setdefault(a.meeting_id, []).append(a.attendee_name)
+
+    for m in pending_meet:
+        if m.id not in attendee_lookup:
+            attendee_lookup[m.id] = attendees_from_legacy(m)
+
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "admin": True,
+        "pending_meet": pending_meet,
+        "pending_msg": pending_msg,
+        "attendee_lookup": attendee_lookup,
+    })
+
+
+@app.get("/admin/users", response_class=HTMLResponse)
+def admin_users(request: Request, session: Session = Depends(get_session)):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
+    users = session.exec(select(Staff).order_by(Staff.display)).all()
+    return templates.TemplateResponse("admin_users.html", {
+        "request": request,
+        "admin": True,
+        "users": users,
+        "error": None,
+    })
+
+
+@app.post("/admin/users")
+def admin_user_add(
+    request: Request,
+    display: str = Form(...),
+    branch: str = Form(""),
+    ext: str = Form(""),
+    mobile: str = Form(""),
+    cug: str = Form(""),
+    office: str = Form(""),
+    floor: str = Form(""),
+    session: Session = Depends(get_session),
+):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
+
+    display_clean = display.strip()
+    if not display_clean:
+        users = session.exec(select(Staff).order_by(Staff.display)).all()
+        return templates.TemplateResponse("admin_users.html", {
+            "request": request,
+            "admin": True,
+            "users": users,
+            "error": "Display name is required.",
+        })
+
+    existing = session.exec(select(Staff)).all()
+    if any(u.display.casefold() == display_clean.casefold() for u in existing):
+        users = session.exec(select(Staff).order_by(Staff.display)).all()
+        return templates.TemplateResponse("admin_users.html", {
+            "request": request,
+            "admin": True,
+            "users": users,
+            "error": f"A user named '{display_clean}' already exists.",
+        })
+
+    session.add(Staff(
+        display=display_clean,
+        branch=branch.strip(),
+        ext=ext.strip(),
+        mobile=mobile.strip(),
+        cug=cug.strip(),
+        office=office.strip(),
+        floor=floor.strip(),
+    ))
+    session.commit()
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@app.post("/admin/users/{uid}/update")
+def admin_user_update(
+    request: Request,
+    uid: int,
+    display: str = Form(...),
+    branch: str = Form(""),
+    ext: str = Form(""),
+    mobile: str = Form(""),
+    cug: str = Form(""),
+    office: str = Form(""),
+    floor: str = Form(""),
+    session: Session = Depends(get_session),
+):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
+
+    user = session.get(Staff, uid)
+    if not user:
+        return RedirectResponse("/admin/users", status_code=303)
+
+    display_clean = display.strip()
+    if not display_clean:
+        return RedirectResponse("/admin/users", status_code=303)
+
+    existing = session.exec(select(Staff)).all()
+    if any(u.id != uid and u.display.casefold() == display_clean.casefold() for u in existing):
+        return RedirectResponse("/admin/users", status_code=303)
+
+    user.display = display_clean
+    user.branch = branch.strip()
+    user.ext = ext.strip()
+    user.mobile = mobile.strip()
+    user.cug = cug.strip()
+    user.office = office.strip()
+    user.floor = floor.strip()
+    session.add(user)
+    session.commit()
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@app.post("/admin/users/{uid}/delete")
+def admin_user_delete(request: Request, uid: int, session: Session = Depends(get_session)):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
+    user = session.get(Staff, uid)
+    if user:
+        session.delete(user)
+        session.commit()
+    return RedirectResponse("/admin/users", status_code=303)
 
 @app.post("/admin/meetings/{mid}/status")
 def admin_meeting_status(request: Request, mid: int, status: str = Form(...), session: Session = Depends(get_session)):
