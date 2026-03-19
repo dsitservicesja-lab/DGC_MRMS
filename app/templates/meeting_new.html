@@ -48,18 +48,16 @@
 
   <label>Purpose <input name="purpose" placeholder="Purpose / agenda"></label>
 
-  <label>Expected Attendee (Personnel)
-    <select name="expected_attendee">
-      <option value="">Select...</option>
+  <label>Attendees (select one or many)
+    <select name="attendees" multiple size="7" required>
       {% for s in staff %}
         <option value="{{ s.display }}">{{ s.display }}</option>
       {% endfor %}
-      <option value="Other">Other</option>
     </select>
   </label>
 
-  <label>Attendees Details (if Other/Multiple)
-    <textarea name="attendees_details" rows="3" placeholder="List attendees if needed"></textarea>
+  <label>Other Attendees (optional)
+    <textarea name="other_attendees" rows="3" placeholder="Add non-staff attendees. Separate names with commas or new lines."></textarea>
   </label>
 
   <button class="btn" type="submit">Submit (Status = Pending)</button>
