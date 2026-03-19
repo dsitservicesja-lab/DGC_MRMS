@@ -9,7 +9,14 @@ from pathlib import Path
 
 from sqlmodel import Session, select
 from .db import init_db, get_session
-from .seed import seed_if_empty, get_lists
+from .seed import (
+    seed_if_empty,
+    get_lists,
+    LIST_CATEGORIES,
+    get_list_categories,
+    add_list_item,
+    remove_list_item,
+)
 from .models import MeetingRequest, MessengerRequest, MeetingAttendee, Staff
 from .utils import next_meeting_booking_id, next_messenger_request_id, staff_autofill, check_meeting_conflict
 from .auth import verify_password, is_admin
@@ -20,6 +27,16 @@ app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 LOGO_PATH = Path("cropped-Logo.png")
+SYSTEM_LIST_LABELS = {
+    "meeting_locations": "Meeting Locations",
+    "branches": "Branches",
+    "meeting_types": "Meeting Types",
+    "confidential_opts": "Confidentiality Options",
+    "urgency_levels": "Urgency Levels",
+    "delivery_types": "Delivery Types",
+    "item_types": "Item Types",
+    "goj_agencies": "GOJ Agencies",
+}
 
 
 @app.get("/logo")
@@ -62,6 +79,29 @@ def attendees_from_legacy(m: MeetingRequest) -> list[str]:
         values.append(m.expected_attendee.strip())
     values.extend(split_attendees(m.attendees_details))
     return dedupe_keep_order([v for v in values if v])
+
+
+def normalize_form_attendees(raw_attendees: str | list[str], other_attendees: str) -> list[str]:
+    selected: list[str]
+    if isinstance(raw_attendees, list):
+        selected = raw_attendees
+    elif raw_attendees.strip():
+        selected = [raw_attendees]
+    else:
+        selected = []
+
+    return dedupe_keep_order([a.strip() for a in selected if a and a.strip()] + split_attendees(other_attendees))
+
+
+def render_admin_settings(request: Request, session: Session, error: str | None = None):
+    return templates.TemplateResponse("admin_system.html", {
+        "request": request,
+        "admin": True,
+        "error": error,
+        "labels": SYSTEM_LIST_LABELS,
+        "categories": sorted(LIST_CATEGORIES),
+        "lists": get_list_categories(session),
+    })
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
@@ -108,7 +148,7 @@ def meeting_create(
     purpose: str = Form(""),
     meeting_type: str = Form(""),
     confidential: str = Form("Open"),
-    attendees: list[str] = Form(default=[]),
+    attendees: str | list[str] = Form(default=[]),
     other_attendees: str = Form(""),
     session: Session = Depends(get_session),
 ):
@@ -122,7 +162,7 @@ def meeting_create(
             "title":"Meeting Conflict",
             "message": f"Conflict with existing booking {conflict.booking_id} at {conflict.location}. 15-minute gap required."})
 
-    normalized = dedupe_keep_order([a.strip() for a in attendees if a and a.strip()] + split_attendees(other_attendees))
+    normalized = normalize_form_attendees(attendees, other_attendees)
     if not normalized:
         return templates.TemplateResponse("error.html", {"request": request, "admin": is_admin(request),
             "title":"Missing Attendees",
@@ -246,6 +286,59 @@ def admin_dashboard(request: Request, session: Session = Depends(get_session)):
         "pending_msg": pending_msg,
         "attendee_lookup": attendee_lookup,
     })
+
+
+@app.get("/admin/system", response_class=HTMLResponse)
+def admin_system_settings(request: Request, session: Session = Depends(get_session)):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
+    return render_admin_settings(request, session)
+
+
+@app.post("/admin/system/add")
+def admin_system_add(
+    request: Request,
+    category: str = Form(...),
+    value: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
+
+    if category not in LIST_CATEGORIES:
+        return render_admin_settings(request, session, error="Invalid settings category.")
+
+    if not add_list_item(category, value):
+        return render_admin_settings(
+            request,
+            session,
+            error="Could not add value. It may be blank or already exists.",
+        )
+
+    return RedirectResponse("/admin/system", status_code=303)
+
+
+@app.post("/admin/system/remove")
+def admin_system_remove(
+    request: Request,
+    category: str = Form(...),
+    value: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
+
+    if category not in LIST_CATEGORIES:
+        return render_admin_settings(request, session, error="Invalid settings category.")
+
+    if not remove_list_item(category, value):
+        return render_admin_settings(
+            request,
+            session,
+            error="Could not remove value. It may no longer exist.",
+        )
+
+    return RedirectResponse("/admin/system", status_code=303)
 
 
 @app.get("/admin/users", response_class=HTMLResponse)

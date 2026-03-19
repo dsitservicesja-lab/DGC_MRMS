@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>System Settings</h1>
+<p class="lead">Manage dropdown options used across meeting and messenger request forms.</p>
+<p><a class="btn small" href="/admin">Back to Dashboard</a></p>
+
+{% if error %}
+  <p class="alert">{{ error }}</p>
+{% endif %}
+
+<section class="card">
+  <h2>Add Option</h2>
+  <form method="post" action="/admin/system/add" class="grid">
+    <label>Category
+      <select name="category" required>
+        <option value="">Select...</option>
+        {% for key in categories %}
+          <option value="{{ key }}">{{ labels.get(key, key) }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Value <input name="value" placeholder="New option" required></label>
+    <button class="btn" type="submit">Add Option</button>
+  </form>
+</section>
+
+{% for key in categories %}
+  <h2>{{ labels.get(key, key) }}</h2>
+  <section class="card">
+    {% set items = lists.get(key, []) %}
+    {% if items %}
+      <table>
+        <tr><th>Value</th><th>Action</th></tr>
+        {% for item in items %}
+          <tr>
+            <td>{{ item }}</td>
+            <td>
+              <form method="post" action="/admin/system/remove" class="inline" onsubmit="return confirm('Remove this option?');">
+                <input type="hidden" name="category" value="{{ key }}">
+                <input type="hidden" name="value" value="{{ item }}">
+                <button class="btn small" type="submit">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p class="note">No options in this category yet.</p>
+    {% endif %}
+  </section>
+{% endfor %}
+{% endblock %}
