@@ -66,19 +66,19 @@ def _badge(status: str) -> str:
 
 
 def _send(to_list: list[str], subject: str, html: str) -> None:
-    if not EMAIL_ENABLED:
-        logger.info("Email globally disabled via EMAIL_ENABLED env var")
-        return
-    if not email_notifications_enabled():
-        logger.info("Email disabled via admin toggle")
-        return
-    if not to_list:
-        logger.info("Email skipped: recipient list is empty")
-        return
-    if not EMAIL_USER or not EMAIL_PASSWORD:
-        logger.warning("Email skipped: EMAIL_USER or EMAIL_PASSWORD not configured")
-        return
     try:
+        if not EMAIL_ENABLED:
+            logger.info("Email globally disabled via EMAIL_ENABLED env var")
+            return
+        if not email_notifications_enabled():
+            logger.info("Email disabled via admin toggle")
+            return
+        if not to_list:
+            logger.info("Email skipped: recipient list is empty")
+            return
+        if not EMAIL_USER or not EMAIL_PASSWORD:
+            logger.warning("Email skipped: EMAIL_USER or EMAIL_PASSWORD not configured")
+            return
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         msg["From"] = EMAIL_FROM

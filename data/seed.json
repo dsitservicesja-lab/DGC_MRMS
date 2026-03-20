@@ -386,5 +386,8 @@
     "Jamaica Customs Agency",
     "Public Service Commission (PSC)",
     "Office of the Director of Public Prosecutions (ODPP)"
-  ]
+  ],
+  "app_settings": {
+    "email_notifications_enabled": true
+  }
 }

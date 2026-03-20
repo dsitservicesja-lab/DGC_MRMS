@@ -18,5 +18,5 @@ EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USER = os.getenv("EMAIL_USER", "")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
-EMAIL_FROM = os.getenv("EMAIL_FROM", "")
+EMAIL_FROM = os.getenv("EMAIL_FROM", "") or EMAIL_USER
 EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "1").strip() == "1"
