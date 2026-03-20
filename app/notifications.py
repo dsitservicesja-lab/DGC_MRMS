@@ -201,18 +201,20 @@ def notify_meeting_status(
     end_date,
     end_time,
     location: str,
+    attendees: list[str] | None = None,
     to_emails: list[str],
 ) -> None:
     subject = f"Meeting Request {booking_id} – {status}"
+    att_list = ", ".join(attendees) if attendees else "—"
     body = (
         f'<h2 style="margin:0 0 6px;color:{_BRAND};font-size:1.15rem;">Meeting Status Updated</h2>'
         f'<p style="margin:0 0 18px;color:#536164;">An admin has updated your meeting request.</p>'
         f'<table cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid #e5e7eb;">'
         + _row("Booking ID",   f"<strong>{booking_id}</strong>")
         + _row("Requested By", requested_by)
-        + _row("Date",         f"{start_date} – {end_date}")
-        + _row("Time",         f"{start_time} – {end_time}")
+        + _row("Date / Time",  f"{start_date} {start_time} – {end_date} {end_time}")
         + _row("Location",     location)
+        + _row("Attendees",    att_list)
         + _row("New Status",   _badge(status))
         + "</table>"
     )
@@ -263,20 +265,33 @@ def notify_messenger_status(
     request_id: str,
     requested_by: str,
     status: str,
+    pickup_location: str = "",
+    delivery_type: str = "",
     destination_name: str,
     destination_area: str,
+    required_by_date=None,
+    required_by_time=None,
     to_email: str | list[str],
 ) -> None:
     subject = f"Messenger Request {request_id} – {status}"
     dest = f"{destination_name} ({destination_area})" if destination_area else destination_name or "—"
+    if required_by_date and required_by_time:
+        rbd = f"{required_by_date} {required_by_time}"
+    elif required_by_date:
+        rbd = str(required_by_date)
+    else:
+        rbd = "—"
     body = (
         f'<h2 style="margin:0 0 6px;color:{_BRAND};font-size:1.15rem;">Messenger Status Updated</h2>'
         f'<p style="margin:0 0 18px;color:#536164;">An admin has updated your messenger request.</p>'
         f'<table cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid #e5e7eb;">'
-        + _row("Request ID",   f"<strong>{request_id}</strong>")
-        + _row("Requested By", requested_by)
-        + _row("Destination",  dest)
-        + _row("New Status",   _badge(status))
+        + _row("Request ID",      f"<strong>{request_id}</strong>")
+        + _row("Requested By",    requested_by)
+        + _row("Date / Time",     rbd)
+        + _row("Pickup Location", pickup_location or "—")
+        + _row("Delivery Type",   delivery_type or "—")
+        + _row("Destination",     dest)
+        + _row("New Status",      _badge(status))
         + "</table>"
     )
     send_email(to_email, subject, _base(subject, body))
