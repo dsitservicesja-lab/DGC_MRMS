@@ -79,9 +79,6 @@ def _send(to_list: list[str], subject: str, html: str) -> None:
         if not EMAIL_USER or not EMAIL_PASSWORD:
             logger.warning("Email skipped: EMAIL_USER or EMAIL_PASSWORD not configured")
             return
-        if not EMAIL_FROM:
-            logger.warning("Email skipped: EMAIL_FROM is not configured (set EMAIL_FROM or EMAIL_USER)")
-            return
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         msg["From"] = EMAIL_FROM
