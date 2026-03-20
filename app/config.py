@@ -16,7 +16,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dgc.db")
 # Email / notification settings
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_USER = os.getenv("EMAIL_USER", "dgcjamaica@gmail.com")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "auqa yiqf bmxk nyvz")
-EMAIL_FROM = os.getenv("EMAIL_FROM", "DGC Requests <dgcjamaica@gmail.com>")
+EMAIL_USER = os.getenv("EMAIL_USER", "")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
+EMAIL_FROM = os.getenv("EMAIL_FROM", "")
 EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "1").strip() == "1"

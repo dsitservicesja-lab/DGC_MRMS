@@ -91,6 +91,12 @@ def _send(to_list: list[str], subject: str, html: str) -> None:
             smtp.login(EMAIL_USER, EMAIL_PASSWORD)
             smtp.sendmail(EMAIL_USER, to_list, msg.as_string())
         logger.info("Email sent → %s | %s", to_list, subject)
+    except smtplib.SMTPAuthenticationError:
+        logger.error(
+            "SMTP authentication failed – check EMAIL_USER and EMAIL_PASSWORD "
+            "environment variables. For Gmail, use an App Password "
+            "(https://support.google.com/mail/?p=BadCredentials)."
+        )
     except Exception:
         logger.exception("Email send failed → %s | subject=%s", to_list, subject)
 
@@ -135,6 +141,13 @@ def send_test_email(to_addr: str) -> str:
             smtp.login(EMAIL_USER, EMAIL_PASSWORD)
             smtp.sendmail(EMAIL_USER, [to_addr], msg.as_string())
         return "ok"
+    except smtplib.SMTPAuthenticationError:
+        logger.error("SMTP authentication failed during test email → %s", to_addr)
+        return (
+            "SMTP authentication failed. Check that EMAIL_USER and EMAIL_PASSWORD "
+            "environment variables are set correctly. For Gmail, use an App Password "
+            "(https://support.google.com/mail/?p=BadCredentials)."
+        )
     except Exception as exc:
         logger.exception("Test email failed → %s", to_addr)
         return str(exc)
