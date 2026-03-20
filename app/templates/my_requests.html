@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>My Requests</h1>
+<p class="lead">View the status of your submitted meeting and messenger requests.</p>
+
+<section class="card" style="margin-bottom:18px;">
+  <form method="get" action="/my-requests" class="inline" style="flex-wrap:wrap;gap:10px;">
+    <label style="flex-direction:row;align-items:center;gap:8px;">
+      <strong>Select Your Name:</strong>
+      <select name="name" style="min-width:220px;">
+        <option value="">-- Choose --</option>
+        {% for s in requestors %}
+          <option value="{{ s.display }}" {% if s.display == selected_name %}selected{% endif %}>{{ s.display }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button class="btn small" type="submit">View My Requests</button>
+  </form>
+</section>
+
+{% if selected_name %}
+  <h2>Meeting Requests for {{ selected_name }}</h2>
+  <section class="card">
+  {% if meetings %}
+  <table>
+    <tr><th>Booking</th><th>Date/Time</th><th>Location</th><th>Purpose</th><th>Attendees</th><th>Status</th></tr>
+    {% for m in meetings %}
+    <tr>
+      <td>{{ m.booking_id }}</td>
+      <td>{{ m.start_date }} {{ m.start_time }} – {{ m.end_date }} {{ m.end_time }}</td>
+      <td>{{ m.location }}</td>
+      <td>{{ m.purpose or '—' }}</td>
+      <td>
+        {% set attendees = attendee_lookup.get(m.id, []) %}
+        {{ attendees|length }}
+        {% if attendees %}
+          <br><span class="note">{{ attendees|join(", ") }}</span>
+        {% endif %}
+      </td>
+      <td>
+        <span class="status-badge status-{{ m.status|lower|replace(' ', '-') }}">{{ m.status }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="note">No meeting requests found for {{ selected_name }}.</p>
+  {% endif %}
+  </section>
+
+  <h2>Messenger Requests for {{ selected_name }}</h2>
+  <section class="card">
+  {% if messenger_reqs %}
+  <table>
+    <tr><th>Request ID</th><th>Destination</th><th>Delivery Type</th><th>Urgency</th><th>Required By</th><th>Status</th></tr>
+    {% for r in messenger_reqs %}
+    <tr>
+      <td>{{ r.request_id }}</td>
+      <td>{{ r.destination_name }}{% if r.destination_area %} ({{ r.destination_area }}){% endif %}</td>
+      <td>{{ r.delivery_type or '—' }}</td>
+      <td>{{ r.urgency_level }}</td>
+      <td>{% if r.required_by_date %}{{ r.required_by_date }} {{ r.required_by_time }}{% endif %}</td>
+      <td>
+        <span class="status-badge status-{{ r.status|lower|replace(' ', '-') }}">{{ r.status }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="note">No messenger requests found for {{ selected_name }}.</p>
+  {% endif %}
+  </section>
+{% endif %}
+
+{% endblock %}

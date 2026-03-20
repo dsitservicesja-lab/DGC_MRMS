@@ -259,4 +259,60 @@ th {
 	.brand { font-size: 0.9rem; }
 	.brand-logo { width: 38px; height: 38px; }
 	.admin-user-row { grid-template-columns: 1fr; }
+	.stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Dashboard stats grid ──────────────────────────────────────────────────── */
+
+.stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 12px;
+	margin: 16px 0;
+}
+
+.stat-card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	padding: 16px;
+	text-align: center;
+	box-shadow: var(--shadow);
+}
+
+.stat-value {
+	display: block;
+	font-family: "Space Grotesk", sans-serif;
+	font-size: 2rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.stat-label {
+	display: block;
+	margin-top: 4px;
+	font-size: 0.85rem;
+	color: var(--muted);
+}
+
+.stat-brand .stat-value { color: var(--brand); }
+.stat-green .stat-value { color: #065f46; }
+
+/* ── Status badges ─────────────────────────────────────────────────────────── */
+
+.status-badge {
+	display: inline-block;
+	padding: 3px 12px;
+	border-radius: 999px;
+	font-weight: 700;
+	font-size: 0.82rem;
+	white-space: nowrap;
+}
+
+.status-pending   { background: #fef3c7; color: #92400e; }
+.status-approved  { background: #d1fae5; color: #065f46; }
+.status-completed { background: #d1fae5; color: #065f46; }
+.status-delivered { background: #d1fae5; color: #065f46; }
+.status-declined  { background: #ffe4e6; color: #9f1239; }
+.status-cancelled { background: #fee2e2; color: #b91c1c; }
+.status-in-transit { background: #dbeafe; color: #1e40af; }
