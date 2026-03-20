@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Admin Dashboard</h1>
-<p class="lead">Review pending requests and update status actions for meetings and messenger items.</p>
+<p class="lead">Review pending requests, monitor meetings in progress, and manage status actions.</p>
 <p>
   {% if superadmin %}
     <a class="btn small" href="/admin/users">Manage Staff Users</a>
@@ -9,8 +9,63 @@
   {% endif %}
 </p>
 
+<!-- Summary Stats -->
+<section class="stats-grid">
+  <div class="stat-card stat-brand">
+    <span class="stat-value">{{ total_meetings }}</span>
+    <span class="stat-label">Total Meetings</span>
+  </div>
+  <div class="stat-card stat-brand">
+    <span class="stat-value">{{ meeting_counts.get('Pending', 0) }}</span>
+    <span class="stat-label">Pending Meetings</span>
+  </div>
+  <div class="stat-card stat-green">
+    <span class="stat-value">{{ in_progress_meet|length }}</span>
+    <span class="stat-label">In Progress Now</span>
+  </div>
+  <div class="stat-card stat-brand">
+    <span class="stat-value">{{ total_messenger }}</span>
+    <span class="stat-label">Total Messenger</span>
+  </div>
+  <div class="stat-card stat-brand">
+    <span class="stat-value">{{ messenger_counts.get('Pending', 0) }}</span>
+    <span class="stat-label">Pending Messenger</span>
+  </div>
+  <div class="stat-card stat-green">
+    <span class="stat-value">{{ meeting_counts.get('Approved', 0) }}</span>
+    <span class="stat-label">Approved Meetings</span>
+  </div>
+</section>
+
+<!-- Meetings In Progress -->
+{% if in_progress_meet %}
+<h2>🟢 Meetings In Progress</h2>
+<section class="card">
+<table>
+  <tr><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Purpose</th><th>Attendees</th></tr>
+  {% for m in in_progress_meet %}
+  <tr>
+    <td>{{ m.booking_id }}</td>
+    <td>{{ m.requested_by }}</td>
+    <td>{{ m.start_date }} {{ m.start_time }} – {{ m.end_date }} {{ m.end_time }}</td>
+    <td>{{ m.location }}</td>
+    <td>{{ m.purpose or '—' }}</td>
+    <td>
+      {% set attendees = attendee_lookup.get(m.id, []) %}
+      {{ attendees|length }}
+      {% if attendees %}
+        <br><span class="note">{{ attendees|join(", ") }}</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</section>
+{% endif %}
+
 <h2>Pending Meetings</h2>
 <section class="card">
+{% if pending_meet %}
 <table>
   <tr><th>ID</th><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Attendees</th><th>Confidential</th><th>Action</th></tr>
   {% for m in pending_meet %}
@@ -42,10 +97,14 @@
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<p class="note">No pending meeting requests.</p>
+{% endif %}
 </section>
 
 <h2>Pending Messenger</h2>
 <section class="card">
+{% if pending_msg %}
 <table>
   <tr><th>ID</th><th>Request</th><th>Requested By</th><th>Destination</th><th>Urgency</th><th>Required By</th><th>Action</th></tr>
   {% for r in pending_msg %}
@@ -72,6 +131,59 @@
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<p class="note">No pending messenger requests.</p>
+{% endif %}
 </section>
+
+<!-- All Processed Meetings -->
+{% if non_pending_meet %}
+<h2>Processed Meetings</h2>
+<section class="card">
+<table>
+  <tr><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Attendees</th><th>Status</th></tr>
+  {% for m in non_pending_meet %}
+  <tr>
+    <td>{{ m.booking_id }}</td>
+    <td>{{ m.requested_by }}</td>
+    <td>{{ m.start_date }} {{ m.start_time }} – {{ m.end_date }} {{ m.end_time }}</td>
+    <td>{{ m.location }}</td>
+    <td>
+      {% set attendees = attendee_lookup.get(m.id, []) %}
+      {{ attendees|length }}
+      {% if attendees %}
+        <br><span class="note">{{ attendees|join(", ") }}</span>
+      {% endif %}
+    </td>
+    <td>
+      <span class="status-badge status-{{ m.status|lower|replace(' ', '-') }}">{{ m.status }}</span>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</section>
+{% endif %}
+
+<!-- All Processed Messenger -->
+{% if non_pending_msg %}
+<h2>Processed Messenger Requests</h2>
+<section class="card">
+<table>
+  <tr><th>Request</th><th>Requested By</th><th>Destination</th><th>Urgency</th><th>Required By</th><th>Status</th></tr>
+  {% for r in non_pending_msg %}
+  <tr>
+    <td>{{ r.request_id }}</td>
+    <td>{{ r.requested_by }}</td>
+    <td>{{ r.destination_name }} ({{ r.destination_area }})</td>
+    <td>{{ r.urgency_level }}</td>
+    <td>{% if r.required_by_date %}{{ r.required_by_date }} {{ r.required_by_time }}{% endif %}</td>
+    <td>
+      <span class="status-badge status-{{ r.status|lower|replace(' ', '-') }}">{{ r.status }}</span>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</section>
+{% endif %}
 
 {% endblock %}

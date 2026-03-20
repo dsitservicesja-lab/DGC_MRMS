@@ -359,6 +359,50 @@ def thanks(request: Request):
         "superadmin": is_superadmin(request),
     })
 
+@app.get("/my-requests", response_class=HTMLResponse)
+def my_requests(request: Request, name: str = "", session: Session = Depends(get_session)):
+    l = lists(session)
+    requestors = [
+        s for s in l["staff"]
+        if str(s.get("role", "requestor")).strip().casefold() in {"requestor", "admin", "superadmin"}
+    ]
+    meetings: list = []
+    messenger_reqs: list = []
+    attendee_lookup: dict[int, list[str]] = {}
+
+    if name.strip():
+        meetings = session.exec(
+            select(MeetingRequest)
+            .where(MeetingRequest.requested_by == name.strip())
+            .order_by(MeetingRequest.submitted_ts.desc())
+        ).all()
+        messenger_reqs = session.exec(
+            select(MessengerRequest)
+            .where(MessengerRequest.requested_by == name.strip())
+            .order_by(MessengerRequest.submitted_ts.desc())
+        ).all()
+        if meetings:
+            meeting_ids = [m.id for m in meetings]
+            attendees = session.exec(
+                select(MeetingAttendee).where(MeetingAttendee.meeting_id.in_(meeting_ids))
+            ).all()
+            for a in attendees:
+                attendee_lookup.setdefault(a.meeting_id, []).append(a.attendee_name)
+            for m in meetings:
+                if m.id not in attendee_lookup:
+                    attendee_lookup[m.id] = attendees_from_legacy(m)
+
+    return templates.TemplateResponse("my_requests.html", {
+        "request": request,
+        "admin": can_view_requests(request),
+        "superadmin": is_superadmin(request),
+        "requestors": requestors,
+        "selected_name": name.strip(),
+        "meetings": meetings,
+        "messenger_reqs": messenger_reqs,
+        "attendee_lookup": attendee_lookup,
+    })
+
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request, session: Session = Depends(get_session)):
     if not can_view_requests(request):
@@ -366,14 +410,47 @@ def admin_dashboard(request: Request, session: Session = Depends(get_session)):
     pending_meet = session.exec(select(MeetingRequest).where(MeetingRequest.status=="Pending").order_by(MeetingRequest.submitted_ts.desc())).all()
     pending_msg = session.exec(select(MessengerRequest).where(MessengerRequest.status=="Pending").order_by(MessengerRequest.submitted_ts.desc())).all()
 
+    # Meetings in progress: Approved meetings whose time window includes now
+    now = datetime.now()
+    approved_meetings = session.exec(select(MeetingRequest).where(MeetingRequest.status=="Approved")).all()
+    in_progress_meet = []
+    for m in approved_meetings:
+        start_dt = datetime.combine(m.start_date, m.start_time)
+        end_dt = datetime.combine(m.end_date, m.end_time)
+        if start_dt <= now <= end_dt:
+            in_progress_meet.append(m)
+
+    # Summary counts
+    all_meetings = session.exec(select(MeetingRequest)).all()
+    all_messenger = session.exec(select(MessengerRequest)).all()
+    meeting_counts: dict[str, int] = {}
+    for m in all_meetings:
+        meeting_counts[m.status] = meeting_counts.get(m.status, 0) + 1
+    messenger_counts: dict[str, int] = {}
+    for r in all_messenger:
+        messenger_counts[r.status] = messenger_counts.get(r.status, 0) + 1
+
+    # Recent approved/declined/completed meetings and messenger requests
+    non_pending_meet = session.exec(
+        select(MeetingRequest).where(MeetingRequest.status != "Pending")
+        .order_by(MeetingRequest.submitted_ts.desc())
+    ).all()
+    non_pending_msg = session.exec(
+        select(MessengerRequest).where(MessengerRequest.status != "Pending")
+        .order_by(MessengerRequest.submitted_ts.desc())
+    ).all()
+
     attendees = session.exec(select(MeetingAttendee)).all()
     attendee_lookup: dict[int, list[str]] = {}
     for a in attendees:
         attendee_lookup.setdefault(a.meeting_id, []).append(a.attendee_name)
 
-    for m in pending_meet:
-        if m.id not in attendee_lookup:
-            attendee_lookup[m.id] = attendees_from_legacy(m)
+    all_meet_ids = set(m.id for m in pending_meet) | set(m.id for m in in_progress_meet) | set(m.id for m in non_pending_meet)
+    for mid in all_meet_ids:
+        if mid not in attendee_lookup:
+            match = next((m for m in all_meetings if m.id == mid), None)
+            if match:
+                attendee_lookup[mid] = attendees_from_legacy(match)
 
     return templates.TemplateResponse("admin.html", {
         "request": request,
@@ -381,6 +458,13 @@ def admin_dashboard(request: Request, session: Session = Depends(get_session)):
         "superadmin": is_superadmin(request),
         "pending_meet": pending_meet,
         "pending_msg": pending_msg,
+        "in_progress_meet": in_progress_meet,
+        "non_pending_meet": non_pending_meet,
+        "non_pending_msg": non_pending_msg,
+        "meeting_counts": meeting_counts,
+        "messenger_counts": messenger_counts,
+        "total_meetings": len(all_meetings),
+        "total_messenger": len(all_messenger),
         "attendee_lookup": attendee_lookup,
     })
 
