@@ -1,11 +1,11 @@
 """
 Email notification helpers for DGC Requests & Approvals.
-All sends are async (daemon thread) so they never block a request.
+All sends are async (background thread) so they never block a request.
 Configure via environment variables (see config.py).
 """
 import smtplib
-import threading
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -13,6 +13,10 @@ from .config import EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASSWORD, EMAIL_FR
 from .seed import email_notifications_enabled
 
 logger = logging.getLogger(__name__)
+
+# Thread-pool keeps worker threads alive so emails are reliably delivered
+# even when the calling request finishes quickly.
+_pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="email")
 
 _BRAND = "#0f5560"
 
@@ -62,10 +66,17 @@ def _badge(status: str) -> str:
 
 
 def _send(to_list: list[str], subject: str, html: str) -> None:
-    if not EMAIL_ENABLED or not email_notifications_enabled() or not to_list:
+    if not EMAIL_ENABLED:
+        logger.info("Email globally disabled via EMAIL_ENABLED env var")
+        return
+    if not email_notifications_enabled():
+        logger.info("Email disabled via admin toggle")
+        return
+    if not to_list:
+        logger.info("Email skipped: recipient list is empty")
         return
     if not EMAIL_USER or not EMAIL_PASSWORD:
-        logger.warning("Email skipped: EMAIL_USER/EMAIL_PASSWORD not configured")
+        logger.warning("Email skipped: EMAIL_USER or EMAIL_PASSWORD not configured")
         return
     try:
         msg = MIMEMultipart("alternative")
@@ -73,14 +84,15 @@ def _send(to_list: list[str], subject: str, html: str) -> None:
         msg["From"] = EMAIL_FROM
         msg["To"] = ", ".join(to_list)
         msg.attach(MIMEText(html, "html", "utf-8"))
-        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=20) as smtp:
+        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=30) as smtp:
             smtp.ehlo()
             smtp.starttls()
+            smtp.ehlo()
             smtp.login(EMAIL_USER, EMAIL_PASSWORD)
             smtp.sendmail(EMAIL_USER, to_list, msg.as_string())
         logger.info("Email sent → %s | %s", to_list, subject)
-    except Exception as exc:
-        logger.warning("Email send failed → %s | %s", to_list, exc)
+    except Exception:
+        logger.exception("Email send failed → %s | subject=%s", to_list, subject)
 
 
 def send_email(to: "str | list[str]", subject: str, html: str) -> None:
@@ -89,8 +101,43 @@ def send_email(to: "str | list[str]", subject: str, html: str) -> None:
         to = [to]
     to = [t.strip() for t in to if t and "@" in t]
     if not to:
+        logger.info("send_email: no valid recipients after filtering")
         return
-    threading.Thread(target=_send, args=(to, subject, html), daemon=True).start()
+    _pool.submit(_send, to, subject, html)
+
+
+def send_test_email(to_addr: str) -> str:
+    """Send a test email synchronously. Returns 'ok' or an error message."""
+    if not EMAIL_USER or not EMAIL_PASSWORD:
+        return "EMAIL_USER or EMAIL_PASSWORD not configured in environment."
+    to_addr = to_addr.strip()
+    if not to_addr or "@" not in to_addr:
+        return "Invalid email address."
+    subject = "DGC MRMS – Test Email"
+    body = (
+        '<h2 style="margin:0 0 6px;color:#0f5560;font-size:1.15rem;">'
+        "Test Email Successful</h2>"
+        '<p style="color:#536164;">If you are reading this, '
+        "email notifications from the DGC Requests &amp; Approvals system "
+        "are working correctly.</p>"
+    )
+    html = _base(subject, body)
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = EMAIL_FROM
+        msg["To"] = to_addr
+        msg.attach(MIMEText(html, "html", "utf-8"))
+        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=30) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.ehlo()
+            smtp.login(EMAIL_USER, EMAIL_PASSWORD)
+            smtp.sendmail(EMAIL_USER, [to_addr], msg.as_string())
+        return "ok"
+    except Exception as exc:
+        logger.exception("Test email failed → %s", to_addr)
+        return str(exc)
 
 
 # ── Meeting notifications ────────────────────────────────────────────────────

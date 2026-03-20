@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="card hero">
-  <h1>Service Request Hub</h1>
-  <p class="lead">Submit and track Meeting and Messenger requests in one place. Every request starts as <b>Pending</b> until reviewed.</p>
+  <h1><i class="lucide-building-2"></i> Service Request Hub</h1>
+  <p class="lead">Submit and track Meeting and Messenger requests in one place. Every request starts as <strong>Pending</strong> until reviewed by an administrator.</p>
   <div class="action-grid">
     <article class="action-card">
-      <h2>Meeting Request</h2>
-      <p>Create room and schedule requests with automatic conflict checks.</p>
-      <a class="btn" href="/meetings/new">Submit Meeting Request</a>
+      <h2><i class="lucide-calendar-plus"></i> Meeting Request</h2>
+      <p>Book rooms and schedule meetings with automatic conflict detection and attendee management.</p>
+      <a class="btn" href="/meetings/new"><i class="lucide-plus"></i> Submit Meeting Request</a>
     </article>
     <article class="action-card">
-      <h2>Messenger Request</h2>
-      <p>Submit pickups and deliveries with urgency and required-by details.</p>
-      <a class="btn" href="/messenger/new">Submit Messenger Request</a>
+      <h2><i class="lucide-send"></i> Messenger Request</h2>
+      <p>Submit document pickups and deliveries with urgency tracking and required-by deadlines.</p>
+      <a class="btn" href="/messenger/new"><i class="lucide-plus"></i> Submit Messenger Request</a>
     </article>
   </div>
-  <p class="note">Admins review and update statuses from the Admin panel.</p>
+  <p class="note"><i class="lucide-info"></i> Administrators review and update statuses from the Admin dashboard.</p>
 </section>
 {% endblock %}

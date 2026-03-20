@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Admin/Superadmin Login</h1>
-<p class="lead">Sign in with admin or superadmin credentials to review and process requests.</p>
-{% if error %}<div class="alert">{{ error }}</div>{% endif %}
-<form method="post" class="card">
-  <label>Username <input name="username" required></label>
-  <label>Password <input name="password" type="password" required></label>
-  <button class="btn" type="submit">Login</button>
+<div class="page-header">
+  <h1><i class="lucide-lock"></i> Admin Login</h1>
+  <p class="lead">Sign in with your admin or superadmin credentials to review and process requests.</p>
+</div>
+{% if error %}<div class="alert"><i class="lucide-alert-circle"></i> {{ error }}</div>{% endif %}
+<form method="post" class="card" style="max-width:440px;">
+  <label>Username <input name="username" required autocomplete="username" placeholder="Enter your username"></label>
+  <label style="margin-top:12px;">Password <input name="password" type="password" required autocomplete="current-password" placeholder="Enter your password"></label>
+  <button class="btn" type="submit" style="margin-top:16px;width:100%;justify-content:center;"><i class="lucide-log-in"></i> Sign In</button>
 </form>
 {% endblock %}

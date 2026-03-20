@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Submitted</h1>
-<p class="lead">Your request has been received successfully.</p>
-<p>Your request was submitted with status <b>Pending</b>.</p>
-<p><a class="btn" href="/">Back to Home</a></p>
+<div class="page-header">
+  <h1><i class="lucide-check-circle"></i> Request Submitted</h1>
+  <p class="lead">Your request has been received successfully and is now awaiting review.</p>
+</div>
+<section class="card" style="max-width:520px;">
+  <p style="margin:0 0 16px;">Your request was submitted with status <span class="status-badge status-pending">Pending</span></p>
+  <p style="color:var(--muted);font-size:0.88rem;margin:0 0 18px;">You will receive an email notification when an administrator updates the status of your request.</p>
+  <a class="btn" href="/"><i class="lucide-home"></i> Back to Home</a>
+</section>
 {% endblock %}

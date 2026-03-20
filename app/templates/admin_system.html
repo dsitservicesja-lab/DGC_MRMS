@@ -1,45 +1,63 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>System Settings</h1>
-<p class="lead">Manage dropdown options used across meeting and messenger request forms.</p>
-<p><a class="btn small" href="/admin">Back to Dashboard</a></p>
+<div class="page-header">
+  <h1><i class="lucide-settings"></i> System Settings</h1>
+  <p class="lead">Manage dropdown options used across meeting and messenger request forms.</p>
+</div>
+<div class="btn-group">
+  <a class="btn small" href="/admin"><i class="lucide-arrow-left"></i> Back to Dashboard</a>
+</div>
 
-<section class="card">
-  <h2>Email Notifications</h2>
-  <form method="post" action="/admin/system/notifications" class="inline">
-    <label style="display:flex;flex-direction:row;align-items:center;gap:8px;">
+{% if error %}
+  <div class="alert"><i class="lucide-alert-circle"></i> {{ error }}</div>
+{% endif %}
+{% if success %}
+  <div class="alert-success"><i class="lucide-check-circle"></i> {{ success }}</div>
+{% endif %}
+
+<section class="card" style="margin-bottom:18px;">
+  <h2><i class="lucide-mail"></i> Email Notifications</h2>
+  <form method="post" action="/admin/system/notifications" class="setting-row" style="margin-bottom:16px;">
+    <label style="flex-direction:row;align-items:center;gap:8px;">
       <input type="checkbox" name="email_notifications_enabled_value" value="1" {% if email_notifications_enabled %}checked{% endif %}>
       Enable email notifications
     </label>
-    <button class="btn small" type="submit">Save</button>
+    <button class="btn small" type="submit"><i class="lucide-save"></i> Save</button>
+  </form>
+  <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
+  <h3 style="font-size:0.95rem;margin:0 0 10px;"><i class="lucide-send"></i> Send Test Email</h3>
+  <p class="note" style="margin:0 0 10px;">Verify that email is configured correctly by sending a test message.</p>
+  <form method="post" action="/admin/system/test-email" class="setting-row">
+    <input type="email" name="test_email_address" placeholder="recipient@example.com" required style="min-width:260px;">
+    <button class="btn small" type="submit"><i class="lucide-mail"></i> Send Test</button>
   </form>
 </section>
 
-{% if error %}
-  <p class="alert">{{ error }}</p>
-{% endif %}
-
-<section class="card">
-  <h2>Add Option</h2>
+<section class="card" style="margin-bottom:18px;">
+  <h2><i class="lucide-plus-circle"></i> Add Option</h2>
   <form method="post" action="/admin/system/add" class="grid">
     <label>Category
       <select name="category" required>
-        <option value="">Select...</option>
+        <option value="">Select category...</option>
         {% for key in categories %}
           <option value="{{ key }}">{{ labels.get(key, key) }}</option>
         {% endfor %}
       </select>
     </label>
-    <label>Value <input name="value" placeholder="New option" required></label>
-    <button class="btn" type="submit">Add Option</button>
+    <label>Value <input name="value" placeholder="New option value" required></label>
+    <button class="btn" type="submit"><i class="lucide-plus"></i> Add Option</button>
   </form>
 </section>
 
 {% for key in categories %}
-  <h2>{{ labels.get(key, key) }}</h2>
+  <div class="section-header">
+    <i class="lucide-list"></i>
+    <h2>{{ labels.get(key, key) }}</h2>
+  </div>
   <section class="card">
     {% set items = lists.get(key, []) %}
     {% if items %}
+      <div class="table-wrap">
       <table>
         <tr><th>Value</th><th>Action</th></tr>
         {% for item in items %}
@@ -49,14 +67,18 @@
               <form method="post" action="/admin/system/remove" class="inline" onsubmit="return confirm('Remove this option?');">
                 <input type="hidden" name="category" value="{{ key }}">
                 <input type="hidden" name="value" value="{{ item }}">
-                <button class="btn small" type="submit">Remove</button>
+                <button class="btn small btn-danger" type="submit"><i class="lucide-trash-2"></i> Remove</button>
               </form>
             </td>
           </tr>
         {% endfor %}
       </table>
+      </div>
     {% else %}
-      <p class="note">No options in this category yet.</p>
+      <div class="empty-state">
+        <i class="lucide-inbox"></i>
+        <p>No options in this category yet.</p>
+      </div>
     {% endif %}
   </section>
 {% endfor %}

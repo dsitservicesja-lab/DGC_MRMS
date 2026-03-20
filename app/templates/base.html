@@ -7,29 +7,42 @@
   <link rel="icon" type="image/png" href="/logo"/>
   <link rel="apple-touch-icon" href="/logo"/>
   <link rel="stylesheet" href="/static/style.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.344.0/font/lucide.min.css"/>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <img src="/logo" alt="DGC logo" class="brand-logo"/>
-      <span class="brand-text">Department of Government Chemist • Requests & Approvals</span>
+      <div class="brand-info">
+        <span class="brand-text">DGC Requests & Approvals</span>
+        <span class="brand-sub">Department of Government Chemist</span>
+      </div>
     </div>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation">
+      <i class="lucide-menu"></i>
+    </button>
     <nav class="nav-links">
-      <a href="/">Home</a>
-      <a href="/meetings/new">New Meeting Request</a>
-      <a href="/messenger/new">New Messenger Request</a>
-      <a href="/my-requests">My Requests</a>
+      <a href="/"><i class="lucide-home"></i> Home</a>
+      <a href="/meetings/new"><i class="lucide-calendar-plus"></i> Meeting</a>
+      <a href="/messenger/new"><i class="lucide-send"></i> Messenger</a>
+      <a href="/my-requests"><i class="lucide-search"></i> My Requests</a>
       {% if admin %}
-        <a href="/admin">Admin</a>
-        <a href="/logout">Logout</a>
+        <a href="/admin"><i class="lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/logout"><i class="lucide-log-out"></i> Logout</a>
       {% else %}
-        <a href="/login">Admin/Superadmin Login</a>
+        <a href="/login"><i class="lucide-lock"></i> Login</a>
       {% endif %}
     </nav>
   </header>
   <main class="container">
     {% block content %}{% endblock %}
   </main>
-  <footer class="footer">Internal system for DGC service requests and approvals.</footer>
+  <footer class="footer">
+    <div class="footer-inner">
+      <span><i class="lucide-shield-check"></i> Internal system for DGC service requests and approvals</span>
+      <span class="footer-sep">•</span>
+      <span>Department of Government Chemist, Jamaica</span>
+    </div>
+  </footer>
 </body>
 </html>

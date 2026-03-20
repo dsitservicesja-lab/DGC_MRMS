@@ -5,6 +5,7 @@ from starlette.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime, date
 import re
+import logging
 from pathlib import Path
 
 from sqlmodel import Session, select
@@ -37,6 +38,13 @@ from .notifications import (
     notify_meeting_status,
     notify_messenger_submitted,
     notify_messenger_status,
+    send_test_email,
+)
+
+# Configure logging so email errors are visible in the console
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
 app = FastAPI(title="DGC Requests & Approvals")
@@ -111,12 +119,13 @@ def normalize_form_attendees(raw_attendees: str | list[str], other_attendees: st
     return dedupe_keep_order([a.strip() for a in selected if a and a.strip()] + split_attendees(other_attendees))
 
 
-def render_admin_settings(request: Request, session: Session, error: str | None = None):
+def render_admin_settings(request: Request, session: Session, error: str | None = None, success: str | None = None):
     return templates.TemplateResponse("admin_system.html", {
         "request": request,
         "admin": True,
         "superadmin": is_superadmin(request),
         "error": error,
+        "success": success,
         "labels": SYSTEM_LIST_LABELS,
         "categories": sorted(LIST_CATEGORIES),
         "lists": get_list_categories(session),
@@ -531,6 +540,30 @@ def admin_system_notifications_toggle(
         return RedirectResponse("/login", status_code=303)
     set_email_notifications_enabled(email_notifications_enabled_value == "1")
     return RedirectResponse("/admin/system", status_code=303)
+
+
+@app.post("/admin/system/test-email")
+def admin_test_email(
+    request: Request,
+    test_email_address: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    if not is_superadmin(request):
+        return RedirectResponse("/login", status_code=303)
+    result = send_test_email(test_email_address)
+    error = None if result == "ok" else result
+    success = "Test email sent successfully!" if result == "ok" else None
+    return templates.TemplateResponse("admin_system.html", {
+        "request": request,
+        "admin": True,
+        "superadmin": is_superadmin(request),
+        "error": error,
+        "success": success,
+        "labels": SYSTEM_LIST_LABELS,
+        "categories": sorted(LIST_CATEGORIES),
+        "lists": get_list_categories(session),
+        "email_notifications_enabled": email_notifications_enabled(),
+    })
 
 
 @app.get("/admin/users", response_class=HTMLResponse)

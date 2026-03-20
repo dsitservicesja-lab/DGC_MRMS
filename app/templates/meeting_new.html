@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>New Meeting Request</h1>
-<p class="lead">Complete the form below to request a meeting. Time conflicts at the same location are blocked automatically.</p>
+<div class="page-header">
+  <h1><i class="lucide-calendar-plus"></i> New Meeting Request</h1>
+  <p class="lead">Complete the form below to request a meeting. Time conflicts at the same location are blocked automatically.</p>
+</div>
 <form method="post" class="card grid">
-  <label>Request Date <input type="date" name="request_date" required></label>
+  <label><i class="lucide-calendar"></i> Request Date <input type="date" name="request_date" required></label>
 
-  <label>Requested By
+  <label><i class="lucide-user"></i> Requested By
     <select name="requested_by" required>
-      <option value="">Select...</option>
+      <option value="">Select staff member...</option>
       {% for s in requestors %}
         <option value="{{ s.display }}">{{ s.display }}</option>
       {% endfor %}
@@ -20,9 +22,9 @@
   <label>Start Time <input type="time" name="start_time" required></label>
   <label>End Time <input type="time" name="end_time" required></label>
 
-  <label>Location
+  <label><i class="lucide-map-pin"></i> Location
     <select name="location" required>
-      <option value="">Select...</option>
+      <option value="">Select location...</option>
       {% for loc in locations %}
         <option value="{{ loc }}">{{ loc }}</option>
       {% endfor %}
@@ -31,14 +33,14 @@
 
   <label>Meeting Type
     <select name="meeting_type">
-      <option value="">Select...</option>
+      <option value="">Select type...</option>
       {% for mt in meeting_types %}
         <option value="{{ mt }}">{{ mt }}</option>
       {% endfor %}
     </select>
   </label>
 
-  <label>Confidential?
+  <label><i class="lucide-shield"></i> Confidential?
     <select name="confidential">
       {% for c in confidential_opts %}
         <option value="{{ c }}">{{ c }}</option>
@@ -46,9 +48,9 @@
     </select>
   </label>
 
-  <label>Purpose <input name="purpose" placeholder="Purpose / agenda"></label>
+  <label><i class="lucide-file-text"></i> Purpose <input name="purpose" placeholder="Purpose / agenda"></label>
 
-  <label>Attendees (select one or many)
+  <label><i class="lucide-users"></i> Attendees (select one or many)
     <select name="attendees" multiple size="7" required>
       {% for s in staff %}
         <option value="{{ s.display }}">{{ s.display }}</option>
@@ -60,8 +62,8 @@
     <textarea name="other_attendees" rows="3" placeholder="Add non-staff attendees. Separate names with commas or new lines."></textarea>
   </label>
 
-  <button class="btn" type="submit">Submit (Status = Pending)</button>
+  <button class="btn" type="submit"><i class="lucide-send"></i> Submit Request</button>
 </form>
-<p class="note">System enforces a 15-minute gap between meetings at the same location.</p>
-<p class="note">Tip: Hold Ctrl (Windows/Linux) or Command (Mac) to select more than one staff attendee.</p>
+<p class="note"><i class="lucide-clock"></i> System enforces a 15-minute gap between meetings at the same location.</p>
+<p class="note"><i class="lucide-info"></i> Tip: Hold Ctrl (Windows/Linux) or ⌘ Command (Mac) to select more than one staff attendee.</p>
 {% endblock %}
