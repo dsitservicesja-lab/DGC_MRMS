@@ -1,32 +1,34 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>New Messenger Request</h1>
-<p class="lead">Use this form for document and package pickup or delivery requests across agencies and offices.</p>
+<div class="page-header">
+  <h1><i class="lucide-send"></i> New Messenger Request</h1>
+  <p class="lead">Use this form for document and package pickup or delivery requests across agencies and offices.</p>
+</div>
 <form method="post" class="card grid">
-  <label>Request Date <input type="date" name="request_date" required></label>
+  <label><i class="lucide-calendar"></i> Request Date <input type="date" name="request_date" required></label>
 
-  <label>Requested By
+  <label><i class="lucide-user"></i> Requested By
     <select name="requested_by" required>
-      <option value="">Select...</option>
+      <option value="">Select staff member...</option>
       {% for s in requestors %}
         <option value="{{ s.display }}">{{ s.display }}</option>
       {% endfor %}
     </select>
   </label>
 
-  <label>Pickup Location <input name="pickup_location" placeholder="e.g., GC12 - HRM&A Office"></label>
+  <label><i class="lucide-map-pin"></i> Pickup Location <input name="pickup_location" placeholder="e.g., GC12 - HRM&A Office"></label>
 
   <label>Delivery Type
     <select name="delivery_type">
-      <option value="">Select...</option>
+      <option value="">Select type...</option>
       {% for d in delivery_types %}
         <option value="{{ d }}">{{ d }}</option>
       {% endfor %}
     </select>
   </label>
 
-  <label>Destination Name (GOJ agency/bank/etc)
-    <input name="destination_name" list="goj_list" placeholder="Start typing...">
+  <label><i class="lucide-building"></i> Destination Name (GOJ agency/bank/etc)
+    <input name="destination_name" list="goj_list" placeholder="Start typing to search...">
     <datalist id="goj_list">
       {% for g in goj_agencies %}
         <option value="{{ g }}"></option>
@@ -34,18 +36,18 @@
     </datalist>
   </label>
 
-  <label>Destination Area (Kingston & St. Andrew) <input name="destination_area" placeholder="e.g., Downtown, New Kingston, Half Way Tree"></label>
+  <label>Destination Area <input name="destination_area" placeholder="e.g., Downtown, New Kingston, Half Way Tree"></label>
 
-  <label>Item Type
+  <label><i class="lucide-package"></i> Item Type
     <select name="item_type">
-      <option value="">Select...</option>
+      <option value="">Select item type...</option>
       {% for it in item_types %}
         <option value="{{ it }}">{{ it }}</option>
       {% endfor %}
     </select>
   </label>
 
-  <label>Urgency Level
+  <label><i class="lucide-alert-triangle"></i> Urgency Level
     <select name="urgency_level">
       {% for u in urgency_levels %}
         <option value="{{ u }}">{{ u }}</option>
@@ -56,9 +58,9 @@
   <label>Required By Date <input type="date" name="required_by_date"></label>
   <label>Required By Time <input type="time" name="required_by_time"></label>
 
-  <label>Notes <textarea name="notes" rows="3" placeholder="Any special instructions"></textarea></label>
+  <label><i class="lucide-message-square"></i> Notes <textarea name="notes" rows="3" placeholder="Any special instructions"></textarea></label>
 
-  <button class="btn" type="submit">Submit (Status = Pending)</button>
+  <button class="btn" type="submit"><i class="lucide-send"></i> Submit Request</button>
 </form>
-<p class="note">If Urgency is Urgent/Critical, Required By Date and Time are required.</p>
+<p class="note"><i class="lucide-info"></i> If Urgency is Urgent or Critical, Required By Date and Time are mandatory.</p>
 {% endblock %}

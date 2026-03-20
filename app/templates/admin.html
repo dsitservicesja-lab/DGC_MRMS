@@ -1,37 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Admin Dashboard</h1>
-<p class="lead">Review pending requests, monitor meetings in progress, and manage status actions.</p>
-<p>
-  {% if superadmin %}
-    <a class="btn small" href="/admin/users">Manage Staff Users</a>
-    <a class="btn small" href="/admin/system">Manage System Settings</a>
-  {% endif %}
-</p>
+<div class="page-header">
+  <h1><i class="lucide-layout-dashboard"></i> Admin Dashboard</h1>
+  <p class="lead">Review pending requests, monitor meetings in progress, and manage status actions.</p>
+</div>
+{% if superadmin %}
+<div class="btn-group">
+  <a class="btn small" href="/admin/users"><i class="lucide-users"></i> Manage Staff Users</a>
+  <a class="btn small btn-outline" href="/admin/system"><i class="lucide-settings"></i> System Settings</a>
+</div>
+{% endif %}
 
 <!-- Summary Stats -->
 <section class="stats-grid">
   <div class="stat-card stat-brand">
+    <span class="stat-icon"><i class="lucide-calendar"></i></span>
     <span class="stat-value">{{ total_meetings }}</span>
     <span class="stat-label">Total Meetings</span>
   </div>
   <div class="stat-card stat-brand">
+    <span class="stat-icon"><i class="lucide-clock"></i></span>
     <span class="stat-value">{{ meeting_counts.get('Pending', 0) }}</span>
     <span class="stat-label">Pending Meetings</span>
   </div>
   <div class="stat-card stat-green">
+    <span class="stat-icon"><i class="lucide-activity"></i></span>
     <span class="stat-value">{{ in_progress_meet|length }}</span>
     <span class="stat-label">In Progress Now</span>
   </div>
   <div class="stat-card stat-brand">
+    <span class="stat-icon"><i class="lucide-send"></i></span>
     <span class="stat-value">{{ total_messenger }}</span>
     <span class="stat-label">Total Messenger</span>
   </div>
   <div class="stat-card stat-brand">
+    <span class="stat-icon"><i class="lucide-clock"></i></span>
     <span class="stat-value">{{ messenger_counts.get('Pending', 0) }}</span>
     <span class="stat-label">Pending Messenger</span>
   </div>
   <div class="stat-card stat-green">
+    <span class="stat-icon"><i class="lucide-check-circle"></i></span>
     <span class="stat-value">{{ meeting_counts.get('Approved', 0) }}</span>
     <span class="stat-label">Approved Meetings</span>
   </div>
@@ -39,47 +47,56 @@
 
 <!-- Meetings In Progress -->
 {% if in_progress_meet %}
-<h2>🟢 Meetings In Progress</h2>
+<div class="section-header">
+  <i class="lucide-activity"></i>
+  <h2>Meetings In Progress</h2>
+</div>
 <section class="card">
+<div class="table-wrap">
 <table>
-  <tr><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Purpose</th><th>Attendees</th></tr>
+  <tr><th>Booking</th><th>Requested By</th><th>Date / Time</th><th>Location</th><th>Purpose</th><th>Attendees</th></tr>
   {% for m in in_progress_meet %}
   <tr>
-    <td>{{ m.booking_id }}</td>
+    <td><strong>{{ m.booking_id }}</strong></td>
     <td>{{ m.requested_by }}</td>
     <td>{{ m.start_date }} {{ m.start_time }} – {{ m.end_date }} {{ m.end_time }}</td>
     <td>{{ m.location }}</td>
     <td>{{ m.purpose or '—' }}</td>
     <td>
       {% set attendees = attendee_lookup.get(m.id, []) %}
-      {{ attendees|length }}
+      <span class="chip"><i class="lucide-users"></i> {{ attendees|length }}</span>
       {% if attendees %}
-        <br><span class="note">{{ attendees|join(", ") }}</span>
+        <br><span class="note" style="margin:0;">{{ attendees|join(", ") }}</span>
       {% endif %}
     </td>
   </tr>
   {% endfor %}
 </table>
+</div>
 </section>
 {% endif %}
 
-<h2>Pending Meetings</h2>
+<div class="section-header">
+  <i class="lucide-calendar-clock"></i>
+  <h2>Pending Meetings</h2>
+</div>
 <section class="card">
 {% if pending_meet %}
+<div class="table-wrap">
 <table>
-  <tr><th>ID</th><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Attendees</th><th>Confidential</th><th>Action</th></tr>
+  <tr><th>ID</th><th>Booking</th><th>Requested By</th><th>Date / Time</th><th>Location</th><th>Attendees</th><th>Confidential</th><th>Action</th></tr>
   {% for m in pending_meet %}
   <tr>
     <td>{{ m.id }}</td>
-    <td>{{ m.booking_id }}</td>
+    <td><strong>{{ m.booking_id }}</strong></td>
     <td>{{ m.requested_by }}</td>
-    <td>{{ m.start_date }} {{ m.start_time }} - {{ m.end_date }} {{ m.end_time }}</td>
+    <td>{{ m.start_date }} {{ m.start_time }} – {{ m.end_date }} {{ m.end_time }}</td>
     <td>{{ m.location }}</td>
     <td>
       {% set attendees = attendee_lookup.get(m.id, []) %}
-      {{ attendees|length }}
+      <span class="chip"><i class="lucide-users"></i> {{ attendees|length }}</span>
       {% if attendees %}
-        <br><span class="note">{{ attendees|join(", ") }}</span>
+        <br><span class="note" style="margin:0;">{{ attendees|join(", ") }}</span>
       {% endif %}
     </td>
     <td>{{ m.confidential }}</td>
@@ -91,26 +108,34 @@
           <option>Cancelled</option>
           <option>Completed</option>
         </select>
-        <button class="btn small" type="submit">Set</button>
+        <button class="btn small" type="submit"><i class="lucide-check"></i> Set</button>
       </form>
     </td>
   </tr>
   {% endfor %}
 </table>
+</div>
 {% else %}
-<p class="note">No pending meeting requests.</p>
+<div class="empty-state">
+  <i class="lucide-inbox"></i>
+  <p>No pending meeting requests.</p>
+</div>
 {% endif %}
 </section>
 
-<h2>Pending Messenger</h2>
+<div class="section-header">
+  <i class="lucide-send"></i>
+  <h2>Pending Messenger</h2>
+</div>
 <section class="card">
 {% if pending_msg %}
+<div class="table-wrap">
 <table>
   <tr><th>ID</th><th>Request</th><th>Requested By</th><th>Destination</th><th>Urgency</th><th>Required By</th><th>Action</th></tr>
   {% for r in pending_msg %}
   <tr>
     <td>{{ r.id }}</td>
-    <td>{{ r.request_id }}</td>
+    <td><strong>{{ r.request_id }}</strong></td>
     <td>{{ r.requested_by }}</td>
     <td>{{ r.destination_name }} ({{ r.destination_area }})</td>
     <td>{{ r.urgency_level }}</td>
@@ -125,34 +150,42 @@
           <option>Delivered</option>
           <option>Completed</option>
         </select>
-        <button class="btn small" type="submit">Set</button>
+        <button class="btn small" type="submit"><i class="lucide-check"></i> Set</button>
       </form>
     </td>
   </tr>
   {% endfor %}
 </table>
+</div>
 {% else %}
-<p class="note">No pending messenger requests.</p>
+<div class="empty-state">
+  <i class="lucide-inbox"></i>
+  <p>No pending messenger requests.</p>
+</div>
 {% endif %}
 </section>
 
 <!-- All Processed Meetings -->
 {% if non_pending_meet %}
-<h2>Processed Meetings</h2>
+<div class="section-header">
+  <i class="lucide-history"></i>
+  <h2>Processed Meetings</h2>
+</div>
 <section class="card">
+<div class="table-wrap">
 <table>
-  <tr><th>Booking</th><th>Requested By</th><th>Date/Time</th><th>Location</th><th>Attendees</th><th>Status</th></tr>
+  <tr><th>Booking</th><th>Requested By</th><th>Date / Time</th><th>Location</th><th>Attendees</th><th>Status</th></tr>
   {% for m in non_pending_meet %}
   <tr>
-    <td>{{ m.booking_id }}</td>
+    <td><strong>{{ m.booking_id }}</strong></td>
     <td>{{ m.requested_by }}</td>
     <td>{{ m.start_date }} {{ m.start_time }} – {{ m.end_date }} {{ m.end_time }}</td>
     <td>{{ m.location }}</td>
     <td>
       {% set attendees = attendee_lookup.get(m.id, []) %}
-      {{ attendees|length }}
+      <span class="chip"><i class="lucide-users"></i> {{ attendees|length }}</span>
       {% if attendees %}
-        <br><span class="note">{{ attendees|join(", ") }}</span>
+        <br><span class="note" style="margin:0;">{{ attendees|join(", ") }}</span>
       {% endif %}
     </td>
     <td>
@@ -161,18 +194,23 @@
   </tr>
   {% endfor %}
 </table>
+</div>
 </section>
 {% endif %}
 
 <!-- All Processed Messenger -->
 {% if non_pending_msg %}
-<h2>Processed Messenger Requests</h2>
+<div class="section-header">
+  <i class="lucide-history"></i>
+  <h2>Processed Messenger Requests</h2>
+</div>
 <section class="card">
+<div class="table-wrap">
 <table>
   <tr><th>Request</th><th>Requested By</th><th>Destination</th><th>Urgency</th><th>Required By</th><th>Status</th></tr>
   {% for r in non_pending_msg %}
   <tr>
-    <td>{{ r.request_id }}</td>
+    <td><strong>{{ r.request_id }}</strong></td>
     <td>{{ r.requested_by }}</td>
     <td>{{ r.destination_name }} ({{ r.destination_area }})</td>
     <td>{{ r.urgency_level }}</td>
@@ -183,6 +221,7 @@
   </tr>
   {% endfor %}
 </table>
+</div>
 </section>
 {% endif %}
 
