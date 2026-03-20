@@ -722,6 +722,7 @@ def admin_meeting_status(request: Request, mid: int, status: str = Form(...), se
             end_date=m.end_date,
             end_time=m.end_time,
             location=m.location,
+            attendees=att_names,
             to_emails=to_emails,
         )
     return RedirectResponse("/admin", status_code=303)
@@ -744,8 +745,12 @@ def admin_messenger_status(request: Request, rid: int, status: str = Form(...), 
             request_id=r.request_id,
             requested_by=r.requested_by,
             status=status,
+            pickup_location=r.pickup_location,
+            delivery_type=r.delivery_type,
             destination_name=r.destination_name,
             destination_area=r.destination_area,
+            required_by_date=r.required_by_date,
+            required_by_time=r.required_by_time,
             to_email=to_emails,
         )
     return RedirectResponse("/admin", status_code=303)
